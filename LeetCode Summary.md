@@ -1,5 +1,139 @@
 # LeetCode Summary
 # 贪心
+# 排序
+
+<b>值得注意的是排序类问题并不是简单的排序算法的实现，而是基于基础排序算法而诞生的一系列问题，其中以快速排序算法的划分法诞生的变式问题最多。</b>
+
+## [215.数组中的第K个最大元素](https://leetcode.cn/problems/kth-largest-element-in-an-array/)
+
+这是典型的一道Top K求解问题，一般来说这类问题使用<mark>堆(优先队列)</mark>来解决即可。但是这道题要求实现O(n)的算法，所以堆排序在时间复杂度上不符合要求。
+
+事实上，这道题使用的是<mark>基于快速排序的快速选择算法</mark>，使用快速排序中的划分法，一点点逼近数组中第K大的数字。在这个过程中还要引入<mark>随机选择划分元</mark>的方法来进一步降低极端情况出现的可能性，从而使得算法的<mark>整体期望复杂度降至O(n)</mark>，这种算法叫做<mark>快速选择(quick select)算法</mark>。
+
+如果遇到要求<mark>第K个最大或者最小元素</mark>，而<b>不期望给出前K个最大最小元素</b>时，使用快速选择算法是一个比较好的选择。
+
+含注释的代码如下：
+```cpp
+class Solution {
+    /*这里假设区间是左闭右闭的[Start, End]*/
+    int partition(vector<int>& nums, int Start, int End)
+    {
+        /*随机选择划分元，可以使得算法复杂度降至O(n)*/
+        int RandomIndex = (rand() % (End - Start + 1)) + Start;
+
+        /*Attention ：选好划分元之后，和最左元素交换，方便后续操作*/
+        swap(nums[Start], nums[RandomIndex]);
+        int Tmp = nums[Start];
+        while(Start < End)  // 划分过程，不再详述
+        {
+            while(Start < End and nums[End] > Tmp) --End;
+            nums[Start] = nums[End];
+            while(Start < End and nums[Start] <= Tmp) ++Start;
+            nums[End] = nums[Start];
+        }   
+        nums[Start] = Tmp;
+        return Start;
+    }
+
+    /*快速划分算法：quick select algorithm*/
+    int quickSelect(vector<int>& nums, int k, int Start, int End)
+    {
+        int Pivot = partition(nums, Start, End);
+        /* 如果随机选择的划分元正好是第k小的元素，直接返回 */
+        if(Pivot == k - 1)                                  
+            return nums[Pivot];
+        else if(Pivot < k - 1)
+            /* 否则向一侧区间进行递归 */
+            return quickSelect(nums, k, Pivot + 1, End);    
+        else
+            return quickSelect(nums, k, Start, Pivot - 1);  
+
+    }
+public:
+    int findKthLargest(vector<int>& nums, int k) 
+    {
+        /* 初始化随机数种子 */
+        srand((unsigned)time(NULL));                        
+        int n = nums.size();
+        /* 第k大数字也是第n+1-k小的数字 */
+        return quickSelect(nums, n + 1 - k, 0, n - 1);      
+    }
+};
+```
+
+## [912.堆排序](https://leetcode.cn/problems/kth-largest-element-in-an-array/)
+
+堆排序是解决Top K排序的重要方法，堆排序<mark>在面试时也往往需要直接手撕</mark>。
+
+值得注意的是，<b>堆一棵完全二叉树</b>，所以在静态存储的树结构中，<mark>一个节点编号和它的左右孩子编号之间存在定量关系</mark>，这是整个堆排序算法运行的重要原理。一般来说有两种换算方法：
+
+- 如果数组下标从1开始，那么<mark>左孩子 = 2 * index</mark>，<mark>右孩子 = 2 * index + 1</mark>
+- 如果数组下标从0开始，那么<mark>左孩子 = 2 * index + 1</mark>，<mark>右孩子 = 2 * index + 2</mark>
+
+一般来说数组下标都是从0开始的，所以<mark>一般选择第二种换算法</mark>。
+
+堆排序涉及的核心步骤就是<mark>堆的调整(adjustHeap)</mark>，要重点掌握。
+```cpp
+/* 向下调整堆的函数, [Low, High]划定了调整范围*/
+void adjustHeap(vector<int>& nums, int Low, int High)
+{
+    // 取出Low节点和其左孩子，注意左孩子的下标是如何计算的
+    int i = Low, j = i * 2 + 1;     
+    while(j <= High)
+    {
+        // 调整j为左右孩子中的较大值，准备和i进行交换
+        if(j + 1 <= High and nums[j + 1] > nums[j])
+            j = j + 1;
+
+        // 如果左右孩子的较大值大于父亲节点，那么交换之并继续向下调整              
+        if(nums[i] < nums[j])
+        {
+            swap(nums[i], nums[j]);
+            i = j;
+            j = i * 2 + 1;
+        }
+        // 否则调整到此结束
+        else
+            break;
+    }
+}
+```
+
+在实现了向下调整堆的函数之后，接下来就是重建堆的函数，即从<mark>数组n/2的位置(n是是数组的总长度)开始倒序进行调整直到第一个节点</mark>，代码如下所示：
+```cpp
+void buildHeap(vector<int>& nums)
+{
+    int n = nums.size();
+    // 从中间节点进行倒序调整直到第一个节点
+    for(int i = n / 2 ; i >= 0 ; --i)
+        adjustHeap(nums, i, n - 1);
+}
+```
+
+在实现了上述两个函数之后，堆排序就很简单了：
+<b>
+- 首先重建堆，这时位于nums[0]这个位置的一定是最大元素，将其与最后一个元素进行交换，那么此时它就到了它应该在的位置上
+- 对[0, n-2]这个范围进行向下调整，从而再一次得到了一个堆
+- ...
+- 重复这个过程直至所有元素都已经归位
+</b>
+
+```cpp
+//堆排序
+void heapSort(vector<int>& nums)
+{
+    // 重建堆
+    buildHeap(nums);
+    int n = nums.size();
+    for(int i = n - 1 ; i >= 0 ; --i)
+    {
+        // 将当前堆的最大元素交换到它的应有位置上，并向下调整堆
+        swap(nums[0], nums[i]);
+        adjustHeap(nums, 0, i - 1);
+    }
+}
+
+```
 
 # 链表
 ## [206.反转链表](https://leetcode.cn/problems/reverse-linked-list/)
