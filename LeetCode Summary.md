@@ -150,7 +150,8 @@ public:
     {
         if(not head)
             return head;
-/*将Left初始值置为nullptr，可以直接保证翻转完之后最后一个节点的next指针是nullptr*/
+    /*将Left初始值置为nullptr*/
+    /*可以直接保证翻转完之后最后一个节点的next指针是nullptr*/
         ListNode* Left = nullptr;
         ListNode* Right = head;
         while(Right)
@@ -172,6 +173,7 @@ class Solution {
 public:
 /*
     注意：递归函数的返回值是翻转后的链表的头节点
+    这点非常重要
 */
     ListNode* reverseList(ListNode* head) 
     {
@@ -186,6 +188,90 @@ public:
 
 ```
 
+## [25.K个一组翻转链表](https://leetcode.cn/problems/reverse-nodes-in-k-group/)
+
+这是一道困难题，但是并没有什么新颖的算法，只是有很多<mark>细碎的边界条件</mark>需要处理，核心还是反转链表。这里多了两个部分的逻辑：
+
+- <b>1.当剩余节点个数不足k个时，及时返回链表</b>，这部分的逻辑如下：
+
+```cpp
+// ListNode *Head = head, *Tail = head;
+int Counter = 0;
+// 从Head开始向后数k - 1个节点，找到Tail节点
+// 之所以是k-1是因为我们是从链表的第一个节点开始数的
+while(Counter < k - 1)              
+{
+    Tail = Tail->next;
+    Counter++;
+    // 如果当前剩余节点数量不足K个，直接返回首节点
+    if(not Tail)
+        return Dummy->next;
+}
+```
+- 2.<b>完成局部的K个链表反转之后，将子链表接回原先的链表</b>，这部分的逻辑如下：
+```cpp
+auto ReversePair = reverseList(Head, Tail);
+
+// 将反转之后的子链表再次连接到原先的链表上
+Previous->next = ReversePair.first;
+ReversePair.second->next = Next;
+```
+
+在完成上述两部分的逻辑之后，剩下的就是简单的链表反转问题，<mark>全部代码如下</mark>：
+
+```cpp
+class Solution {
+    /*反转[Head, Tail]这个范围内的链表*/
+    pair<ListNode*, ListNode*> reverseList(ListNode *Head, ListNode* Tail)
+    {
+        ListNode *Previous = Head, *Present = Head->next;
+        while(Previous != Tail)
+        {
+            ListNode *Tmp = Present->next;
+            Present->next = Previous;
+            Previous = Present;
+            Present = Tmp;
+        }
+        return {Tail, Head};    // 反转之后，头尾节点正好反过来
+    }
+public:
+    ListNode* reverseKGroup(ListNode* head, int k) {
+        ListNode *Dummy = new ListNode(0, head);
+
+        // Head和Tail记录的分别是k个节点小组中的头尾节点
+        ListNode *Head = head, *Tail = head;
+        ListNode *Previous = Dummy, *Next = nullptr;
+        while(Head)
+        {
+            int Counter = 0;
+            // 从Head开始向后数K - 1个节点，找到Tail节点
+            while(Counter < k - 1)              
+            {
+                Tail = Tail->next;
+                Counter++;
+                // 如果当前剩余节点数量不足K个，直接返回首节点
+                if(not Tail)
+                    return Dummy->next;
+            }
+            // 记录Tail之后的下一个节点
+            Next = Tail->next;
+            auto ReversePair = reverseList(Head, Tail);
+
+            // 将反转之后的子链表再次连接到原先的链表上
+            Previous->next = ReversePair.first;
+            ReversePair.second->next = Next;
+
+            // 调整指针准备下一次反转
+            Previous = ReversePair.second;
+            Head = Tail = Next;
+        }
+        return Dummy->next;
+    }
+};
+```
+
+
+
 # 二叉树
 
 
@@ -194,7 +280,7 @@ public:
 # 滑动窗口
 ## [3.无重复字符的最长子串](https://leetcode.cn/problems/longest-substring-without-repeating-characters/)
 
-这道题是一道<mark>非常经典的滑动窗口问题</mark>，它要求我们在一个字符串中找到最小的不含重复字符的子串(注意子字符串必须是连续的)。
+这道题是一道<mark>非常经典的滑动窗口问题</mark>，它要求我们在一个字符串中找到最长的不含重复字符的子串(注意子字符串必须是连续的)。
 
 结合本题的数据规模可以知道要求的<mark>应该是O(n)复杂度的算法</mark>。
 
@@ -243,7 +329,7 @@ public:
         int Ans = 0;
         while(Right < n)         
         {
-            /* 发现重复字符，直接跳过中间的所有字符位置，不用一个个向窗口外排出 */
+    // 发现重复字符，直接跳过中间的所有字符位置，不用一个个向窗口外排出 
             if(HashTable.count(s[Right]))   
                 /*使用max运算符保证跳转位置大于当前左边界*/
                 Left = max(Left, HashTable[s[Right]]);  
