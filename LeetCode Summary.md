@@ -1,8 +1,33 @@
+- [LeetCode Summary](#leetcode-summary)
+- [Little Tips Mentioned Ahead](#little-tips-mentioned-ahead)
+- [贪心](#贪心)
+- [排序](#排序)
+  - [215.数组中的第K个最大元素](#215数组中的第k个最大元素)
+  - [912.堆排序](#912堆排序)
+  - [912.快速排序](#912快速排序)
+- [链表](#链表)
+  - [206.反转链表](#206反转链表)
+  - [25.K个一组翻转链表](#25k个一组翻转链表)
+- [二叉树](#二叉树)
+- [图](#图)
+- [滑动窗口 \& 双指针](#滑动窗口--双指针)
+  - [3.无重复字符的最长子串](#3无重复字符的最长子串)
+  - [15.三数之和](#15三数之和)
+- [动态规划](#动态规划)
+  - [53.最大子数组和](#53最大子数组和)
+- [模拟](#模拟)
+- [单调栈](#单调栈)
+- [设计类问题](#设计类问题)
+  - [146.LRU 缓存](#146lru-缓存)
+- [数学类问题](#数学类问题)
+- [模拟 \& 找规律](#模拟--找规律)
+
+
 # LeetCode Summary
 
 本文件是在解决LeetCode算法问题过程中的总结与反思汇总。
 
-# Little Tips
+# Little Tips Mentioned Ahead
 
 - 如果要使用线性复杂度在一维数组中解决问题，优先考虑<mark>滑动窗口</mark>和<mark>双指针</mark>，以及<mark>动态规划</mark>。
 - Top K的问题求解时，优先考虑堆(优先队列)来解决，因为它<mark>会自动维护前K个元素的有序性</mark>。这里有一些例外，比如<mark>215.数组中的第K个最大元素</mark>，就使用了<mark>快速选择算法(QuickSelect)</mark>来快速地定位第K大的元素。
@@ -72,7 +97,7 @@ public:
 
 ##  <a name='912.https:leetcode.cnproblemskth-largest-element-in-an-array'></a>[912.堆排序](https://leetcode.cn/problems/kth-largest-element-in-an-array/)
 
-堆排序是解决Top K排序的重要方法，堆排序<mark>在面试时也往往需要直接手撕</mark>。
+堆排序是解决Top K排序的重要方法，但是堆排序<mark>在面试时也往往需要直接手撕</mark>。
 
 值得注意的是，<b>堆一棵完全二叉树</b>，所以在静态存储的树结构中，<mark>一个节点编号和它的左右孩子编号之间存在定量关系</mark>，这是整个堆排序算法运行的重要原理。一般来说有两种换算方法：
 
@@ -141,6 +166,131 @@ void heapSort(vector<int>& nums)
         adjustHeap(nums, 0, i - 1);
     }
 }
+
+```
+## [912.快速排序](https://leetcode.cn/problems/sort-an-array/)
+
+这道题还是经典的排序算法实现，这里实现的是<mark>快速排序算法</mark>，快速排序算法主要分为两个部分：<mark>划分和排序</mark>。划分时可以选择使用随机算法选取划分元，这样<mark>在统计意义</mark>上可以将算法的一般复杂度降至O(nlogn)。
+
+注意这里着重强调了在统计意义上，这是因为一般来说使用排序算法的场景是处理现实生活中的数据，这些数据往往是随机的，没有特定规律的。这也就意味着，如果<mark>人为地编造特殊数据</mark>，<b>即使采用挑选随机划分元的方法，快速排序算法的时间复杂度也会退化到O(n^2)</b>，我们很快就会看到这个例子。
+
+这里直接给出快速排序的代码，很经典，必须掌握：
+```cpp
+class Solution {
+    // 在nums[Left, Right]这个范围内进行划分
+    int parition(vector<int>& nums, int Start, int End) 
+    {
+        // 使用随机算法优化划分元的选取
+        int RandomIndex = (rand() % (End - Start + 1)) + Start;
+        swap(nums[RandomIndex], nums[Start]);
+        int Tmp = nums[Start];
+        while(Start < End)
+        {   
+            // 大于等于Tmp元素的值放后面
+            while(Start < End and nums[End] >= Tmp) --End;
+            nums[Start] = nums[End];
+            while(Start < End and nums[Start] < Tmp) ++Start;
+            nums[End] = nums[Start];
+        }
+        nums[Start] = Tmp;
+        return Start;
+    }
+
+    // 对nums[Start, End]进行快速排序
+    void quickSort(vector<int>& nums, int Start, int End)
+    {
+        // 千万要注意这个前提条件，当区间长度小于等于1时直接返回
+        // 否则上面选取划分元时可能出现越界
+        if(Start < End)
+        {
+            int Pivot = parition(nums, Start, End);
+            quickSort(nums, Start, Pivot - 1);
+            quickSort(nums, Pivot + 1, End);
+        }
+    }
+    
+public:
+    vector<int> sortArray(vector<int>& nums) {
+        // 生成随机数的种子
+        srand((unsigned int)time(NULL));
+        int n = nums.size();
+        quickSort(nums, 0, n - 1);
+        return nums;
+    }
+};
+```
+
+这是一套<mark>非常正确和经典的快速排序算法的写法</mark>，更确切地说，是<mark>2-路快速排序</mark>的写法，但是上面的这份代码提交之后会超时。这是因为LeetCode更新了测试用例，给出了一个长度为5 x 10^4个2的数组。这就是我们上面说的：<mark>人造逆天数据</mark>，专门用来将快速排序算法卡住的。
+
+为了解决这个问题，必须引入一种更加先进的算法：<mark>3-路快速排序</mark>，随之而来的还有一个经典问题：[荷兰国旗问题](https://en.wikipedia.org/wiki/Dutch_national_flag_problem)。这道题在LeetCode题库中也是有的，后面也许还有机会见到，其实<mark>这就是3-路快速排序算法的雏形</mark>。
+
+3-路快速排序算法将整个序列分成三部分，设划分元是Tmp，那么<mark>区间将会被划分为以下三部分</mark>：
+
+- 小于Tmp
+- 等于Tmp
+- 大于Tmp
+
+算法的细节非常精巧和值得回味，下面直接结合代码来说：
+```cpp
+class Solution {
+    // 对nums[Left, Right]进行三路快排划分(3-way partition)
+    pair<int, int> partition(vector<int>& nums, int Left, int Right)
+    {
+        // 随机选择一个划分元
+        // 注意这里的划分元选择是有问题的，当区间长度太大时，rand()函数可能不够
+        int RandomIndex = (rand() % (Right - Left + 1)) + Left;
+        swap(nums[RandomIndex], nums[Left]);
+        int Tmp = nums[Left];
+        
+        // 声明两枚指针Lower，Higher和迭代变量i，并做如下约定(左闭右开区间)
+        // [Left, Low)存放小于Tmp的值
+        // [Low, High)存放等于Tmp的值
+        // [High, Right + 1)存放大于Tmp的值
+        int Lower = Left, Higher = Right + 1, i = Left + 1;
+        while(i < Higher)
+        {
+            if(nums[i] < Tmp)
+                /*
+                    如果当前元素小于划分元，那么首先将其与Lower位置的元素进行互换
+                    nums[Lower]一定指向与划分元等大的元素，这是因为我们的约定
+                */
+                swap(nums[Lower++], nums[i++]);
+            else if(nums[i] > Tmp)
+                /*
+                    如果当前元素大于划分元，那么首先将Higher指针前移，因为是右开区间
+                    然后将当前元素和Higher指向的元素进行互换
+                    但是注意：i不要加一
+                    这是因为从Higher原先位置换过来的元素我们是未知的
+                    还需要再处理一遍
+                */
+                swap(nums[--Higher], nums[i]);
+            else 
+                // 遇到了等大的元素，i直接后移
+                i++;
+        }
+        return {Lower, Higher};
+    }
+
+    void quickSort(vector<int>& nums, int Left, int Right)
+    {
+        // 区间长度必须大于1，否则没必要继续深入
+        if(Left < Right)
+        {
+            // 执行上述算法，直接获得两个划分边界Lower和Higher
+            // 分治下去即可
+            auto ReturnPair = partition(nums, Left, Right);
+            quickSort(nums, Left, ReturnPair.first - 1);
+            quickSort(nums, ReturnPair.second, Right);
+        }
+    }
+public:
+    vector<int> sortArray(vector<int>& nums) {
+        srand((unsigned int)time(NULL));
+        int n = nums.size();
+        quickSort(nums, 0, n - 1);
+        return nums;
+    }
+};
 
 ```
 
@@ -595,7 +745,7 @@ public:
 
 本题是设计类问题的代表，题目中让实现一个含LRU功能的cache，且<mark>插入和删除元素的复杂度都是O(1)</mark>。这道设计题的核心思想在于<mark>链表和哈希表相互索引</mark>。
 
-链表节点中存放着完整的key-value对，哈希表存放着<key, ListNode*>，<mark>哈希表可以通过ListNode*快速索引到链表，而链表也可以通过key快速索引到哈希表</mark>。
+链表节点中存放着完整的key-value对，哈希表存放着<key, ListNode*>，所以<mark>哈希表可以通过ListNode*快速索引到链表，而链表也可以通过key快速索引到哈希表</mark>，这是整个数据结构设计的精髓所在。
 
 ![在这里插入图片描述](https://img-blog.csdnimg.cn/2021042116214141.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3p6eTk4MDUxMQ==,size_16,color_FFFFFF,t_70)
 
