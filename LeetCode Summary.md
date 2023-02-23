@@ -1,10 +1,19 @@
 # LeetCode Summary
+
+本文件是在解决LeetCode算法问题过程中的总结与反思汇总。
+
+# Little Tips
+
+- 如果要使用线性复杂度在一维数组中解决问题，优先考虑<mark>滑动窗口</mark>和<mark>双指针</mark>，以及<mark>动态规划</mark>。
+- Top K的问题求解时，优先考虑堆(优先队列)来解决，因为它<mark>会自动维护前K个元素的有序性</mark>。这里有一些例外，比如<mark>215.数组中的第K个最大元素</mark>，就使用了<mark>快速选择算法(QuickSelect)</mark>来快速地定位第K大的元素。
+
 # 贪心
+
 # 排序
 
 <b>值得注意的是排序类问题并不是简单的排序算法的实现，而是基于基础排序算法而诞生的一系列问题，其中以快速排序算法的划分法诞生的变式问题最多。</b>
 
-## [215.数组中的第K个最大元素](https://leetcode.cn/problems/kth-largest-element-in-an-array/)
+##  <a name='215.Khttps:leetcode.cnproblemskth-largest-element-in-an-array'></a>[215.数组中的第K个最大元素](https://leetcode.cn/problems/kth-largest-element-in-an-array/)
 
 这是典型的一道Top K求解问题，一般来说这类问题使用<mark>堆(优先队列)</mark>来解决即可。但是这道题要求实现O(n)的算法，所以堆排序在时间复杂度上不符合要求。
 
@@ -61,7 +70,7 @@ public:
 };
 ```
 
-## [912.堆排序](https://leetcode.cn/problems/kth-largest-element-in-an-array/)
+##  <a name='912.https:leetcode.cnproblemskth-largest-element-in-an-array'></a>[912.堆排序](https://leetcode.cn/problems/kth-largest-element-in-an-array/)
 
 堆排序是解决Top K排序的重要方法，堆排序<mark>在面试时也往往需要直接手撕</mark>。
 
@@ -136,7 +145,7 @@ void heapSort(vector<int>& nums)
 ```
 
 # 链表
-## [206.反转链表](https://leetcode.cn/problems/reverse-linked-list/)
+##  <a name='206.https:leetcode.cnproblemsreverse-linked-list'></a>[206.反转链表](https://leetcode.cn/problems/reverse-linked-list/)
 
 经典题，有<mark>递归和迭代</mark>两种做法，都必须掌握。
 
@@ -188,7 +197,7 @@ public:
 
 ```
 
-## [25.K个一组翻转链表](https://leetcode.cn/problems/reverse-nodes-in-k-group/)
+##  <a name='25.Khttps:leetcode.cnproblemsreverse-nodes-in-k-group'></a>[25.K个一组翻转链表](https://leetcode.cn/problems/reverse-nodes-in-k-group/)
 
 这是一道困难题，但是并没有什么新颖的算法，只是有很多<mark>细碎的边界条件</mark>需要处理，核心还是反转链表。这里多了两个部分的逻辑：
 
@@ -277,8 +286,11 @@ public:
 
 # 图
 
-# 滑动窗口
-## [3.无重复字符的最长子串](https://leetcode.cn/problems/longest-substring-without-repeating-characters/)
+# 滑动窗口 & 双指针
+
+滑动窗口和(双指针)是一种高效解决线性序列问题的算法思想，它<mark>可以将线性序列中的一些问题时间复杂度降低到O(n)</mark>。
+
+##  <a name='3.https:leetcode.cnproblemslongest-substring-without-repeating-characters'></a>[3.无重复字符的最长子串](https://leetcode.cn/problems/longest-substring-without-repeating-characters/)
 
 这道题是一道<mark>非常经典的滑动窗口问题</mark>，它要求我们在一个字符串中找到最长的不含重复字符的子串(注意子字符串必须是连续的)。
 
@@ -342,17 +354,246 @@ public:
 };
 ```
 
+##  <a name='15.https:leetcode.cnproblems3sum'></a>[15.三数之和](https://leetcode.cn/problems/3sum/)
+
+这是最经典的<mark>三指针问题</mark>，其实三指针问题也只是<mark>双指针问题的变式</mark>。本题的要求是在一个序列中找出所有<mark>不重复的相加之和等于0的三元组</mark>。
+
+首先简化一下这个问题，如果本题让求的是二元组，<mark>这就是最经典的双指针问题</mark>。我们只需要<mark>先将整个序列进行排序</mark>，然后分别用两个指针指向头尾，使它们<mark>逐渐向中间靠拢</mark>即可不重不漏地搜索到所有符合要求得二元组，代码逻辑如下：
+```cpp
+// 下面的代码是最原始的双指针算法
+// 假设数组为nums，其大小为n
+int First = 0, Second = n - 1;
+// 和等于0，说明已经找到了满足要求的二元组
+if(nums[First] + nums[Second] == 0)
+    Ans.push_back({nums[First], nums[Second]});
+// 如果当前二元组的和偏小，说明First指针指向的值太小
+else if(nums[First] + nums[Second] < 0)
+    ++First;
+// 如果当前二元组的和偏大，说明Second指针指向的值太大
+else
+    --Second;
+```
+
+这样就将这个问题的复杂度整体降至了O(nlogn)的级别，即<mark>排序本身的复杂度</mark>，而上面的这段代码复杂度为O(n)。
+
+事实上，<mark>双指针算法可以写成下面这样</mark>，如下所示：
+```cpp
+int Second = n - 1;
+for(int First = 0 ; First < Second ; ++First)
+{
+    // 跳过重复的二元组
+    if(First > 0 and nums[First] == nums[First - 1])
+        continue;   
+    while(First < Second and nums[First] + nums[Second] > 0)
+        --Second;
+    
+    // 检查循环跳出原因
+    // 1.如果是因为指针相遇，那么说明进行到了尽头
+    if(First == Second)
+        break;
+    
+    // 2.如果当前找到了一组解，则加入答案
+    if(nums[First] + nums[Second] == 0)
+        Ans.push_back({nums[First], nums[Second]});
+    // 这里还隐藏了一个逻辑，但不用写
+    // if(nums[First] + nums[Second] < 0)
+        // continue;
+}
+    
+```
+
+这和最原始版本相比，对于右指针Second的移动变得更加紧凑，代码效率可能也会更高，“可能”是指从理论上分析代码的整体复杂度是一致的，但<mark>实际运行时发现上述写法比原始写法要快一些</mark>，可能是代码更加紧凑的原因，也有可能是测试用例的原因。
+
+回到本题，也是同样的思路，只是我们<mark>先固定一个指针(First)，移动剩下的两个指针(Second, Third)</mark>即可，目标值也<mark>从0变成了-nums[First]</mark>。这个道理明白了之后，就知道：
+
+<b>所谓三指针问题，甚至四指针问题，也只是<mark>先固定其中n-2个指针之后的双指针问题</mark>，它们的逻辑和解法本质上都是一样的。</b>
+
+但是本题还有很值得学习的点，那就是<b>如何写出简洁优雅的三指针代码</b>，<mark>首先给出我的原始版本代码，献一下丑:)</mark>。
+```cpp
+//我的原始版本代码，思路正确，但代码效率还是偏低
+class Solution {
+public:
+    vector<vector<int>> threeSum(vector<int>& nums) 
+    {
+        sort(nums.begin(), nums.end());
+        int n = nums.size();
+        vector<vector<int>> Ans;
+        // 最外层循环，枚举固定指针的位置
+        for(int Fixed = 0 ; Fixed < n - 2 ; ++Fixed)
+        {
+            // 跳过重复的元素值，防止搜到重复的组
+            if(Fixed > 0 and nums[Fixed] == nums[Fixed - 1])
+                continue;
+            // 初始化双指针的位置
+            int Left = Fixed + 1, Right = n - 1;
+            // 此时的目标值是nums[Fixed]的负值
+            int Target = -nums[Fixed];
+            while(Left < Right)
+            {
+                // 跳过重复的nums[Left]值
+                if(Left > Fixed + 1 and nums[Left] == nums[Left - 1])
+                {
+                    ++Left;
+                    continue;
+                }
+                // 传统的双指针代码，这没什么好说的...
+                if(nums[Left] + nums[Right] == Target)
+                {
+                    Ans.push_back({nums[Fixed], nums[Left], nums[Right]});
+                    ++Left;
+                    --Right;
+                }
+                else if(nums[Left] + nums[Right] < Target)
+                    ++Left;
+                else
+                    --Right;
+            }
+        }
+        return Ans;
+        
+    }
+};
+
+```
+官解的代码就使用了双指针第二种写法，效率却明显提升了不少，猜测可能和测试用例有关，<mark>但无论如何推荐第二种写法</mark>：
+
+![代码效率有了较为明显的提升](image/performance_comparison.png)
+
+```cpp
+class Solution {
+public:
+    vector<vector<int>> threeSum(vector<int>& nums) {
+        int n = nums.size();
+        sort(nums.begin(), nums.end());
+        vector<vector<int>> ans;
+        // 枚举 a
+        for (int first = 0; first < n; ++first) {
+            // 需要和上一次枚举的数不相同
+            if (first > 0 && nums[first] == nums[first - 1]) {
+                continue;
+            }
+            // c 对应的指针初始指向数组的最右端
+            int third = n - 1;
+            int target = -nums[first];
+            // 枚举 b
+            for (int second = first + 1; second < n; ++second) {
+                // 需要和上一次枚举的数不相同
+                if (second > first + 1 && nums[second] == nums[second - 1]) {
+                    continue;
+                }
+                // 需要保证 b 的指针在 c 的指针的左侧
+                while (second < third && nums[second] + nums[third] > target) {
+                    --third;
+                }
+                // 如果指针重合，随着 b 后续的增加
+                // 就不会有满足 a+b+c=0 并且 b<c 的 c 了，可以退出循环
+                if (second == third) {
+                    break;
+                }
+                if (nums[second] + nums[third] == target) {
+                    ans.push_back({nums[first], nums[second], nums[third]});
+                }
+            }
+        }
+        return ans;
+    }
+};
+
+```
+
 
 # 动态规划
+
+## [53.最大子数组和](https://leetcode.cn/problems/maximum-subarray/)
+
+这道题的题目是<mark>求出一个数组中连续的子数组和</mark>，首先看一眼这道题的数据规模是10^5，那么一定是使用O(n)级别的算法来解决。
+
+我的最原始解法使用的是<mark>动态规划</mark>。动态规划法的递推关系非常简单，设DP[i]是以nums[i]为结尾的最大子数组和，那么：
+
+<b>DP[i] = max(DP[i - 1] + nums[i], nums[i]);</b>
+
+而要求接的答案Ans其实也就是max(DP[i])，在<mark>求解DP数组的同时求出即可</mark>，非常简单。
+
+```cpp
+class Solution {
+public:
+    int maxSubArray(vector<int>& nums) 
+    {
+        int Ans = nums[0];
+        int n = nums.size();
+        int DP[n];
+        fill(DP, DP + n, 0);
+        DP[0] = nums[0];
+        for(int i = 1 ; i < n ; ++i)
+        {
+             DP[i] = max(nums[i], DP[i - 1] + nums[i]); // 递推方程
+             Ans = max(Ans, DP[i]);                     // 更新可能的答案
+        }
+        return Ans;
+    }
+};
+```
+
+但除此之外，这道题还有一种<mark>分治的解法在官方题解中</mark>给出了，这本质上也是线段树这种算法的重要功能，使用分治法的代码如下，它对于<mark>任意一个区间(l,r)</mark>保留了如下的四个信息：
+
+- lsum:区间[l,r]中以l为左端点的最大子段和
+- rsum:区间[l,r]中以r为右端点的最大子段和
+- msum:区间[l,r]中的最大子段和
+- isun:区间[l,r]的区间和
+
+对每一个区间都维持着上述几个信息，那么本题<mark>要求的值其实就是msum[0, n - 1]</mark>，具体可见[官方题解](https://leetcode.cn/problems/maximum-subarray/solution/zui-da-zi-xu-he-by-leetcode-solution/)中对上述几个信息的更新和维护方法，这里不再重复，这种方法代码还是非常非常巧妙的。
+
+```cpp
+class Solution {
+public:
+    struct Status {
+        int lSum, rSum, mSum, iSum;
+    };
+
+    Status pushUp(Status l, Status r) {
+        // 注意这里对四项特征的更新策略
+        int iSum = l.iSum + r.iSum;
+        int lSum = max(l.lSum, l.iSum + r.lSum);
+        int rSum = max(r.rSum, r.iSum + l.rSum);
+        int mSum = max(max(l.mSum, r.mSum), l.rSum + r.lSum);
+        return (Status) {lSum, rSum, mSum, iSum};
+    };
+
+    Status get(vector<int> &a, int l, int r) {
+        // 递归到区间长度为1时，返回唯一的数值
+        if (l == r) {
+            return (Status) {a[l], a[l], a[l], a[l]};
+        }
+        // 从区间中点进行分治
+        int m = (l + r) >> 1;
+
+        // 左右分别递归下去，得到子区间的状态信息
+        Status lSub = get(a, l, m);
+        Status rSub = get(a, m + 1, r);
+
+        // 汇总并向上返回
+        return pushUp(lSub, rSub);
+    }
+
+    int maxSubArray(vector<int>& nums) {
+        return get(nums, 0, nums.size() - 1).mSum;
+    }
+};
+```
+正如题解中所说的那样，这就是<mark>线段树方法的雏形</mark>：
+
+![](image/From_DC_to_SegTree.png)
 
 # 模拟
 
 # 单调栈
 
-# 设计类问题
-## [146.LRU 缓存](https://leetcode.cn/problems/lru-cache/)
 
-设计类问题的代表，题目中让实现一个含LRU功能的cache，且<mark>插入和删除元素的复杂度都是O(1)</mark>。这道设计题的核心思想在于<mark>链表和哈希表相互索引</mark>。
+
+# 设计类问题
+## <a name='146.LRUhttps:leetcode.cnproblemslru-cache'></a>[146.LRU 缓存](https://leetcode.cn/problems/lru-cache/)
+
+本题是设计类问题的代表，题目中让实现一个含LRU功能的cache，且<mark>插入和删除元素的复杂度都是O(1)</mark>。这道设计题的核心思想在于<mark>链表和哈希表相互索引</mark>。
 
 链表节点中存放着完整的key-value对，哈希表存放着<key, ListNode*>，<mark>哈希表可以通过ListNode*快速索引到链表，而链表也可以通过key快速索引到哈希表</mark>。
 
@@ -483,3 +724,7 @@ public:
     }
 };
 ```
+
+# 数学类问题
+
+# 模拟 & 找规律
