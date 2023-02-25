@@ -1,14 +1,19 @@
 - [LeetCode Summary](#leetcode-summary)
 - [Little Tips Mentioned Ahead](#little-tips-mentioned-ahead)
 - [贪心](#贪心)
+- [二分](#二分)
+  - [33.搜索旋转排序数组](#33搜索旋转排序数组)
+  - [81.搜索旋转排序数组 II](#81搜索旋转排序数组-ii)
 - [排序](#排序)
   - [215.数组中的第K个最大元素](#215数组中的第k个最大元素)
   - [912.堆排序](#912堆排序)
-  - [912.快速排序](#912快速排序)
+  - [912.快速排序\&三路快速排序](#912快速排序三路快速排序)
 - [链表](#链表)
   - [206.反转链表](#206反转链表)
   - [25.K个一组翻转链表](#25k个一组翻转链表)
+  - [21.合并两个有序链表](#21合并两个有序链表)
 - [二叉树](#二叉树)
+  - [102.二叉树的层序遍历](#102二叉树的层序遍历)
 - [图](#图)
 - [滑动窗口 \& 双指针](#滑动窗口--双指针)
   - [3.无重复字符的最长子串](#3无重复字符的最长子串)
@@ -21,6 +26,8 @@
   - [146.LRU 缓存](#146lru-缓存)
 - [数学类问题](#数学类问题)
 - [模拟 \& 找规律](#模拟--找规律)
+- [其他问题](#其他问题)
+  - [1. 两数之和（巧用哈希表）](#1-两数之和巧用哈希表)
 
 
 # LeetCode Summary
@@ -30,9 +37,121 @@
 # Little Tips Mentioned Ahead
 
 - 如果要使用线性复杂度在一维数组中解决问题，优先考虑<mark>滑动窗口</mark>和<mark>双指针</mark>，以及<mark>动态规划</mark>。
-- Top K的问题求解时，优先考虑堆(优先队列)来解决，因为它<mark>会自动维护前K个元素的有序性</mark>。这里有一些例外，比如<mark>215.数组中的第K个最大元素</mark>，就使用了<mark>快速选择算法(QuickSelect)</mark>来快速地定位第K大的元素。
+- Top K的问题求解时，优先考虑堆(优先队列)来解决，因为它<mark>会自动维护前K个元素的有序性</mark>。但这里有一些例外，比如<mark>215.数组中的第K个最大元素</mark>，就使用了<mark>快速选择算法(QuickSelect)</mark>来快速地定位第K大的元素，这是因为只需要求"第k大"而非"前k大。
+- 有关链表的问题中，<mark>添加伪节点Dummy是一个很好的习惯</mark>，它会使得原本头节点的处理逻辑和后续节点保持一致，从而大大简化代码的边界情况讨论。
 
 # 贪心
+
+# 二分
+
+朴素的二分搜索是一种非常基础和巧妙的算法，它使用序列中存在的<mark>二段性</mark>来将原有区间一分为二，<mark>从而实现O(n)->O(logn)的搜索加速</mark>。基于朴素二分法也诞生了非常多的变式题，这些题往往非常精巧和复杂：<b>首先你要找出序列中存在的二段性，其次要妥善处理各种边界条件</b>。前者只能就事论事地结合题目来思考，后者需要约定好写二分法代码的区间，我一般使用<mark>左闭右开区间</mark>。
+
+## [33.搜索旋转排序数组](https://leetcode.cn/problems/search-in-rotated-sorted-array/)
+
+![搜索旋转排序数组](image/rotated_array.png)
+
+这道题是一道经典的使用二分法解决的问题，题目是<mark>要求在一个"旋转排序"之后的数组</mark>里找到指定的元素并返回下标。这道题所谓的二段性体现在：<b>在这样一个旋转排序的数组中的任何一个位置切一刀，总会旋转排序数组切分成两个部分，一个部分有序，一个部分无序。</b>可以结合上图来理解这种二段性。
+
+<mark>既然有二段性，这道题就可以使用二分法来求解</mark>，方法就是逐步地判断目标元素target是否在有序区间那一半，如果在<mark>则在有序区间中二分下去</mark>，如果<mark>不在则在无序区间中进一步二分下去</mark>。这样就可以实现O(logn)级别的算法复杂度：
+
+```cpp
+class Solution {
+public:
+    // 约定，区间记法全部采用左闭右开区间，故开始时是[Left, Right)
+    int search(vector<int>& nums, int target)
+    {
+        int n = nums.size();
+        int Left = 0, Right = n;
+        while(Left < Right)
+        {
+            int Mid = (Left + Right) >> 1;
+            // 如果中点元素正好是target，那么直接返回下标
+            if(nums[Mid] == target)
+                return Mid;
+            
+            // 如果nums[Left] < nums[Mid]，说明有序序列是[Left, Mid)
+            if(nums[Left] < nums[Mid])
+            {
+                // 判断target值是否在有序区间里，来将区间进行二分
+                if(nums[Left] <= target and target < nums[Mid])
+                    Right = Mid;
+                else
+                    Left = Mid;
+            }          
+            else // nums[Left] > nums[Mid]，说明有序区间是[Mid, Right)
+            {
+            // 注意这里：nums[Right]是不存在于区间之中的，故使用nums[Right - 1]来比较
+            // 同样的，因为nums[Right - 1]包含在区间中，所以是<=号
+                if(nums[Mid] <= target and target <= nums[Right - 1])
+                    Left = Mid;
+                else
+                    Right = Mid;
+            }
+        }
+        return nums[Left] == target ? Left : -1;
+    }
+};
+```
+
+上述这段代码最困难的地方就在于如何找到二段性，以及找到二段性之后如何对细节进行管理，如何管理<,=,>符号，如何进行区间的变换，这需要我们始终坚持对区间的约定，这里就是<mark>左闭右开区间的写法</mark>。
+
+## [81.搜索旋转排序数组 II](https://leetcode.cn/problems/search-in-rotated-sorted-array-ii/)
+
+这道题是在上述<mark>搜索旋转数组</mark>的问题上引入了重复元素，这下使得整个问题变得复杂了很多，首先之前的二段性就荡然无存了，所以二分算法只能加速本题的求解，而在<mark>最坏状态下问题还是会退化到O(n)的状态</mark>。
+
+代码如下：
+```cpp
+class Solution {
+    // 本题还是约定使用左闭右开的区间写法[)
+public:
+    bool search(vector<int> &nums, int target) {
+        int n = nums.size();
+        int Left = 0, Right = n;
+        while(Left < Right)
+        {
+            // 如果当前区间长度为1， 那么直接判断结果
+            // 否则如果还要取中点，有可能会导致Left > Right的情况，这在左闭右开的约定中
+            // 是非法情况，详见测试用例[1,3], 0
+            if(Right - Left == 1)
+                return nums[Left] == target;
+            
+            // 取区间中点
+            int Mid = (Left + Right) >> 1;
+            if(nums[Mid] == target)
+                return true;
+            
+            // 如果区间中点与左右边界值相等，这时无法判断哪一半区间有序
+            // 但我们知道nums[Left]和nums[Right - 1]一定不是
+            if(nums[Left] == nums[Mid] and nums[Mid] == nums[Right - 1])
+            {
+                ++Left;
+                --Right;
+            }
+
+            // [nums[Left], nums[Mid])是有序区间
+            // 这里的逻辑和33.寻找旋转排序数组一致
+            else if(nums[Left] <= nums[Mid])
+            {
+                if(nums[Left] <= target and target < nums[Mid])
+                    Right = Mid;
+                else
+                    Left = Mid;
+            }
+            // [nums[Mid], nums[right])是有序区间
+            else     
+            {
+                if(nums[Mid] <= target and target <= nums[Right - 1])
+                    Left = Mid;
+                else
+                    Right = Mid;
+            }   
+        }
+        return nums[Left] == target;
+    }
+};
+```
+其实本题的难点就在于，当我们找到的nums[Mid]正好位于旋转数组重复元素的"平台期"时，我们不知道两个区间到底哪个是有序的，这种情况下只能将指针进行简单的调整。而正是因为这种情况的出现，算法的最坏时间复杂度可能会退化到O(n)。其他的情况就是需要<mark>注意左闭右开区间的约定，管理好比较过程和指针，防止非法区间Left > Right的出现</mark>。
+
 
 # 排序
 
@@ -168,7 +287,7 @@ void heapSort(vector<int>& nums)
 }
 
 ```
-## [912.快速排序](https://leetcode.cn/problems/sort-an-array/)
+## [912.快速排序&三路快速排序](https://leetcode.cn/problems/sort-an-array/)
 
 这道题还是经典的排序算法实现，这里实现的是<mark>快速排序算法</mark>，快速排序算法主要分为两个部分：<mark>划分和排序</mark>。划分时可以选择使用随机算法选取划分元，这样<mark>在统计意义</mark>上可以将算法的一般复杂度降至O(nlogn)。
 
@@ -428,10 +547,90 @@ public:
     }
 };
 ```
+## [21.合并两个有序链表](https://leetcode.cn/problems/merge-two-sorted-lists/)
+
+一道非常基础的题目，让把两个原本有序的链表进行合并。
+
+申请一个头结点可能会让<mark>整体的逻辑变得更加简单</mark>，剩下的就是比较大小并插入即可。注意不要申请新的节点，而是在原有链表的基础上进行指针的变换即可。但是也有的问题，<mark>新申请节点可能会让整个处理逻辑变得简单许多</mark>，这需要看情况而定。
+
+```cpp
+class Solution {
+public:
+    ListNode* mergeTwoLists(ListNode* list1, ListNode* list2) 
+    {
+        // 申请一个伪节点简化指针处理逻辑，这是一个好习惯
+        ListNode *Dummy = new ListNode(1);
+        ListNode *Present = Dummy, *P1 = list1, *P2 = list2;
+
+        // 注意跳出循环的判断条件，一个链表走到尽头就可以跳出循环
+        while(P1 and P2)
+        {
+            if(P1->val <= P2->val)
+            {
+                Present->next = P1;
+                P1 = P1->next;
+            }
+            else
+            {
+                Present->next = P2;
+                P2 = P2->next;
+            }
+            Present = Present->next;
+        }
+
+        // 处理剩下的链表，因为两个链表不一定等长
+        if(P1)
+            Present->next = P1;
+        if(P2)
+            Present->next = P2;
+        return Dummy->next;
+    }
+};
+
+```
 
 
 
 # 二叉树
+
+## [102.二叉树的层序遍历](https://leetcode.cn/problems/binary-tree-level-order-traversal/)
+
+这是二叉树问题的基础问题，即二叉树的BFS，还有二叉树的DFS。
+尽管标准的BFS写法没有在<mark>对某一层的遍历之前统计本层节点数量</mark>，但我依旧建议这样做，这会明确节点的的层次边界(包括本题)，让我们<mark>知道每一层的边界在哪里</mark>，BFS的代码如下：
+
+```cpp
+class Solution {
+public:
+    vector<vector<int>> levelOrder(TreeNode* root) 
+    {
+        if(not root)
+            return {};
+        vector<vector<int>> Ans;
+        queue<TreeNode*> Q;
+        Q.push(root);
+        while(not Q.empty())
+        {
+            // 统计本层节点数量，这样可以让我们更好区分当前层与下一层的节点
+            int n = Q.size();
+
+            // 当前层的遍历结果
+            vector<int> Tmp;
+            for(int i = 0 ; i < n ; ++i)
+            {
+                auto Front = Q.front();
+                Q.pop();
+                Tmp.push_back(Front->val);
+                if(Front->left)
+                    Q.push(Front->left);
+                if(Front->right)
+                    Q.push(Front->right);
+            }
+            Ans.push_back(Tmp);
+        }
+        return Ans;
+    }
+};
+```
 
 
 # 图
@@ -654,11 +853,25 @@ public:
 
 # 动态规划
 
+动态规划是一种非常重要的算法设计思想，可以分为自底向上和自顶向下两种写法，一般<mark>自底向上的写法用得较多</mark>，而自顶向下的写法也时有用到，这种方法从要解决的问题出发逐渐缩小问题的规模，并在求解过程中不断记录子问题的解，因此也叫做<mark>记忆化搜索</mark>。
+
+自底向上的方法则一般需要以下这几个思考步骤：
+
+<b>
+
+- 明确DP数组含义
+- 递推奠基，即将DP前几项的正确值放置到数组中
+- 寻找递推方程，保证最优子结构和重叠子问题这两个特性
+  - 最优子结构：即更大问题的最优解可以从更小问题的最优解中推出
+  - 重叠子问题：一个问题可以被分解成若干个子问题，且这些子问题会重复出现
+
+</b>
+
 ## [53.最大子数组和](https://leetcode.cn/problems/maximum-subarray/)
 
 这道题的题目是<mark>求出一个数组中连续的子数组和</mark>，首先看一眼这道题的数据规模是10^5，那么一定是使用O(n)级别的算法来解决。
 
-我的最原始解法使用的是<mark>动态规划</mark>。动态规划法的递推关系非常简单，设DP[i]是以nums[i]为结尾的最大子数组和，那么：
+我的最原始解法使用的是<mark>动态规划</mark>。动态规划法的递推关系非常简单，<mark>设DP[i]是以nums[i]为结尾的最大子数组和</mark>，那么：
 
 <b>DP[i] = max(DP[i - 1] + nums[i], nums[i]);</b>
 
@@ -878,3 +1091,35 @@ public:
 # 数学类问题
 
 # 模拟 & 找规律
+
+# 其他问题
+
+## [1. 两数之和](https://leetcode.cn/problems/two-sum/)（巧用哈希表）
+
+这道题让找出一个数组中相加之和等于target值的一对元素，并<mark>返回它们的下标</mark>。很简单的一道题，这里<mark>不再讨论它的O(n^2)的暴力解法，因为没有什么价值</mark>。
+
+首先，不能使用排序算法，因为<mark>排序算法会破坏数据原有的下标</mark>。这道题实际的解法是在遍历nums的时候，<mark>遇到nums[i]不记录nums[i]本身，而要将它的互补值当作键，下标当作值</mark>，即<target-nums[i], i>二元组。这样以后在遍历到这个值时就会发现它已经在哈希表中了，直接返回答案即可。
+
+因此，这道题的O(n)复杂度的解法如下：
+
+```cpp
+class Solution {
+public:
+    vector<int> twoSum(vector<int>& nums, int target) 
+    {
+        unordered_map<int, int> HashTable;
+        int n = nums.size();
+        for(int i = 0 ; i < n ; ++i)
+        {
+            // 若发现当前值已经被记录，说明它的互补值已经出现过了，可以返回答案
+            if(HashTable.count(nums[i]))
+                return{HashTable[nums[i]], i};
+            // 否则记录下来当前值的互补值和对应的下标，方便返回
+            HashTable[target - nums[i]] = i; 
+        }
+
+        // 因为题目中保证一定有解，所以此处代码永远不会到达，仅是为了保证语法正确
+        return {};
+    }
+};
+```
