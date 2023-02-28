@@ -12,7 +12,10 @@
   - [206.反转链表](#206反转链表)
   - [25.K个一组翻转链表](#25k个一组翻转链表)
   - [21.合并两个有序链表](#21合并两个有序链表)
-- [二叉树](#二叉树)
+- [栈](#栈)
+  - [20. 有效的括号](#20-有效的括号)
+- [队列](#队列)
+- [树](#树)
   - [102.二叉树的层序遍历](#102二叉树的层序遍历)
 - [图](#图)
 - [滑动窗口 \& 双指针](#滑动窗口--双指针)
@@ -20,8 +23,8 @@
   - [15.三数之和](#15三数之和)
 - [动态规划](#动态规划)
   - [53.最大子数组和](#53最大子数组和)
-- [模拟](#模拟)
-- [单调栈](#单调栈)
+  - [121. 买卖股票的最佳时机](#121-买卖股票的最佳时机)
+  - [122. 买卖股票的最佳时机 II](#122-买卖股票的最佳时机-ii)
 - [设计类问题](#设计类问题)
   - [146.LRU 缓存](#146lru-缓存)
 - [数学类问题](#数学类问题)
@@ -32,7 +35,7 @@
 
 # LeetCode Summary
 
-本文件是在解决LeetCode算法问题过程中的总结与反思汇总。
+本文件是在解决LeetCode算法问题过程中的总结与反思汇总，<mark>点击题目的超链接即可跳转到对应LeetCode官网题面</mark>。
 
 # Little Tips Mentioned Ahead
 
@@ -375,13 +378,13 @@ class Solution {
                 */
                 swap(nums[Lower++], nums[i++]);
             else if(nums[i] > Tmp)
-                /*
-                    如果当前元素大于划分元，那么首先将Higher指针前移，因为是右开区间
-                    然后将当前元素和Higher指向的元素进行互换
-                    但是注意：i不要加一
-                    这是因为从Higher原先位置换过来的元素我们是未知的
-                    还需要再处理一遍
-                */
+            /*
+                如果当前元素大于划分元，那么首先将Higher指针前移，因为是右开区间
+                然后将当前元素和Higher指向的元素进行互换
+                但是注意：i不要加一
+                这是因为从Higher原先位置换过来的元素我们是未知的
+                还需要再处理一遍
+            */
                 swap(nums[--Higher], nums[i]);
             else 
                 // 遇到了等大的元素，i直接后移
@@ -589,9 +592,49 @@ public:
 
 ```
 
+# 栈
 
+栈是一种LIFO的数据结构，在算法题中它经常用来解决<mark>匹配问题</mark>。
 
-# 二叉树
+## [20. 有效的括号](https://leetcode.cn/problems/valid-parentheses/)
+
+这是使用栈解决的问题中最常见的一类，即<mark>简单匹配问题</mark>。
+
+思路也非常简单，遇见左括号入栈，遇见右括号时观察栈顶元素是否是与之配对的左括号，最终整个序列遍历完成之后。如果序列正好是一个完整的匹配序列，<mark>栈应该恰好排空</mark>，否则就不是一个合法的序列。
+
+```cpp
+class Solution {
+public:
+    bool isValid(string s) 
+    {
+        stack<char> S;
+        int n = s.size();
+        for(int i = 0 ; i < n ; ++i)
+        {
+            // 左括号入栈
+            if(s[i] == '(' or s[i] == '[' or s[i] == '{')
+                S.push(s[i]);
+            
+            // 右括号则判断栈顶是否是相匹配的括号，是则出栈
+            else if(not S.empty() and (
+                        (s[i] == ')' and S.top() == '(') or
+                        (s[i] == ']' and S.top() == '[') or
+                        (s[i] == '}' and S.top() == '{')))
+            
+                S.pop();
+            // 否则括号不匹配，直接返回
+            else return false; 
+        }
+
+        // 最后判断栈是否排空，这是为了排除左括号多余的情况
+        return S.size() == 0;
+    }
+};
+```
+
+# 队列
+
+# 树
 
 ## [102.二叉树的层序遍历](https://leetcode.cn/problems/binary-tree-level-order-traversal/)
 
@@ -947,11 +990,120 @@ public:
 
 ![](image/From_DC_to_SegTree.png)
 
-# 模拟
+## [121. 买卖股票的最佳时机](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock/)
 
-# 单调栈
+这是<mark>买卖股票的最佳时机</mark>系列问题的第一道，它给出了一个数组，让我们决定在<mark>何时买入何时卖出可以获得最大收益</mark>，这个系列的问题有通用解法，即<mark>动态规划</mark>，所以将此问题总结在动态规划这个专题下面。
 
+这个问题很简单，因为<mark>只允许一次买入和一次卖出</mark>，且卖出时间一定要在买入时间之后，所以可以<mark>通过一次遍历来记录最小值</mark>，并<mark>不断更新当前值与最小值之差的最大值</mark>。代码如下：
+```cpp
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) 
+    {
+        int n = prices.size();
+        int Min = INT_MAX, Ans = 0;
+        for(int i = 0 ; i < n ; ++i)
+        {
+            // 遍历数组并不断记录最小值
+            Min = min(Min, prices[i]);
 
+            // 不断更新当前值与最小值的差值的最大值，这就是答案
+            Ans = max(Ans, prices[i] - Min);
+        }
+        return Ans;
+    }
+};
+```
+
+上述代码就是该问题的最优解，但是对于这个系列的问题而言<mark>不是通用解法</mark>，在总结系列问题的共性时难以概况，动态规划就是这个问题的通解。而且这类问题的特点在于，<mark>它是双重的线性动态规划，且两个量会相互交织<mark>，具体来说：
+
+我们设置一个DP数组：DP[n][2]，当然为了逻辑的清晰，<mark>也可以开辟两个数组DP1、DP2</mark>。<b>DP[i][0]表示的含义是第i天持有现金时的最大现金收益，DP[i][1]表示的是持有股票时可以获得的最大现金收益。</b>这两个DP数组之间是相互影响的，因为之前的决策会影响到后面:
+
+递推方程是：
+
+```cpp
+DP[i][0] = max(DP[i - 1][0], DP[i - 1][1] + prices[i]);
+DP[i][1] = max(DP[i - 1][1], -prices[i]);
+```
+以DP[i][1] = max(DP[i - 1][1], -prices[i])为例对递推方程进行解释，DP[i][1]表示的是第i天持有股票的情况下拥有的<b>最大现金收益</b>。第i天持有股票<b>有两种情况</b>，<mark>第一是i-1天或更早以前就已经买入股票而且第i天也没有卖出</mark>，那么此时的收益就应该是DP[i - 1][1]。<mark>第二种情况是第i天当天才买入股票，因为只能买一次股票，显然这就是唯一一次买股票的时间，现金收益为当日股票价格的负值-prices[i]</mark>。DP[i][0]的含义可以类比推出，在此不再赘述。
+
+含注释的代码如下：
+
+```cpp
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        int n = prices.size();
+        // DP[i][0]表示第i天持有现金可以获得的最大现金收益
+        // DP[i][1]表示第i天持有股票可以获得的最大现金收益
+        int DP[n][2];
+
+        int Ans = 0;
+        // 注意：注意第0天持有现金时最大现金收益为0，因为没有买卖操作故DP[0][0] = 0
+        // 而买入股票的话，现金收益就会是买股票花出去的钱(因为还没有卖出操作)DP[0][1] = -prices[i]
+        DP[0][0] = 0;
+        DP[0][1] = -prices[0];
+        for(int i = 1 ; i < n ; ++i)
+        {
+            DP[i][0] = max(DP[i - 1][0], DP[i - 1][1] + prices[i]);
+            DP[i][1] = max(DP[i - 1][1], -prices[i]);
+        }
+        return DP[n - 1][0];
+    }
+};
+
+```
+注意到上述代码中，DP[i]的值只和DP[i - 1]有关，所以<mark>可以使用滚动数组技巧来优化空间复杂度</mark>。掌握这类问题的本质建议还是<mark>使用动态规划法来解决</mark>，在面试手撕时建议使用一次遍历来解。
+
+## [122. 买卖股票的最佳时机 II](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-ii/)
+
+这是买卖股票系列问题之二，这次买卖次数改为了<mark>任意次买入和任意次卖出</mark>。这道题的最优解法是贪心法，通用解法则是动态规划，因为动态规划是这一类问题的通解。所以，总结在此专题下。
+
+首先看贪心解法，因为允许任意次买入和卖出，所以我们只需要<mark>"吃尽"好处</mark>即可获得收益最大值。因为我们拥有了上帝视角，知道股票每天的价格，所以<mark>专拣可以获得正收益的前后两天累加</mark>即可，代码如下：
+
+```cpp
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) 
+    {
+      int MaxProfit = 0;
+      for(int i = 1 ; i < prices.size() ; ++i)
+            // 只挑选可以获得收益的段进行累加，会亏损的段不要
+          MaxProfit += max(0, prices[i] - prices[i - 1]);
+      return MaxProfit;
+    }
+};
+```
+
+再看动态规划解法，和121.买卖股票的最佳时机类似定义DP数组，那么本题的递推方程如下，注意由于允许多次买卖，DP[i][1]的更新策略与121题是不一样的，<mark>第i天持有股票时的最大现金收益必须考虑到之前的收益，而121题因为只允许买入一次所以必为-prices[i]</mark>，请对比121题中的递推方程理解本题中的递推方程，并注意它们之间的细微差异：
+```cpp
+DP[i][0] = max(DP[i - 1][0], DP[i - 1][1] + prices[i]);
+DP[i][1] = max(DP[i - 1][1], DP[i - 1][0] - prices[i]);
+```
+
+完整的代码如下:
+
+```cpp
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        int n = prices.size();
+        int DP[n][2];
+        memset(DP, 0, sizeof(DP));
+
+        // DP[i][0]表示持有现金时的最大现金收益
+        // DP[i][1]表示持有股票时的最大现金收益
+        DP[0][0] = 0;
+        DP[0][1] = -prices[0];
+        for(int i = 1 ; i < n ; ++i)
+        {
+            DP[i][0] = max(DP[i - 1][0], DP[i - 1][1] + prices[i]);
+            DP[i][1] = max(DP[i - 1][1], DP[i - 1][0] - prices[i]);
+        }
+        return DP[n - 1][0];
+    }
+};
+```
 
 # 设计类问题
 ## <a name='146.LRUhttps:leetcode.cnproblemslru-cache'></a>[146.LRU 缓存](https://leetcode.cn/problems/lru-cache/)
