@@ -4,6 +4,8 @@
 - [二分](#二分)
   - [33.搜索旋转排序数组](#33搜索旋转排序数组)
   - [81.搜索旋转排序数组 II](#81搜索旋转排序数组-ii)
+- [DFS \& BFS](#dfs--bfs)
+  - [200.岛屿数量](#200岛屿数量)
 - [排序](#排序)
   - [215.数组中的第K个最大元素](#215数组中的第k个最大元素)
   - [912.堆排序](#912堆排序)
@@ -12,6 +14,7 @@
   - [206.反转链表](#206反转链表)
   - [25.K个一组翻转链表](#25k个一组翻转链表)
   - [21.合并两个有序链表](#21合并两个有序链表)
+  - [141.环形链表](#141环形链表)
 - [栈](#栈)
   - [20. 有效的括号](#20-有效的括号)
 - [队列](#队列)
@@ -21,10 +24,12 @@
 - [滑动窗口 \& 双指针](#滑动窗口--双指针)
   - [3.无重复字符的最长子串](#3无重复字符的最长子串)
   - [15.三数之和](#15三数之和)
+  - [88.合并两个有序数组](#88合并两个有序数组)
 - [动态规划](#动态规划)
   - [53.最大子数组和](#53最大子数组和)
   - [121. 买卖股票的最佳时机](#121-买卖股票的最佳时机)
   - [122. 买卖股票的最佳时机 II](#122-买卖股票的最佳时机-ii)
+  - [5.最长回文子串](#5最长回文子串)
 - [设计类问题](#设计类问题)
   - [146.LRU 缓存](#146lru-缓存)
 - [数学类问题](#数学类问题)
@@ -113,8 +118,8 @@ public:
         while(Left < Right)
         {
             // 如果当前区间长度为1， 那么直接判断结果
-            // 否则如果还要取中点，有可能会导致Left > Right的情况，这在左闭右开的约定中
-            // 是非法情况，详见测试用例[1,3], 0
+    // 否则如果还要取中点，有可能会导致Left > Right的情况，这在左闭右开的约定中
+    // 是非法情况，详见测试用例[1,3], 0
             if(Right - Left == 1)
                 return nums[Left] == target;
             
@@ -155,6 +160,72 @@ public:
 ```
 其实本题的难点就在于，当我们找到的nums[Mid]正好位于旋转数组重复元素的"平台期"时，我们不知道两个区间到底哪个是有序的，这种情况下只能将指针进行简单的调整。而正是因为这种情况的出现，算法的最坏时间复杂度可能会退化到O(n)。其他的情况就是需要<mark>注意左闭右开区间的约定，管理好比较过程和指针，防止非法区间Left > Right的出现</mark>。
 
+# DFS & BFS
+
+DFS和BFS是最常见的两种搜索方法，前者以<mark>搜索的深度(depth)优先</mark>，会一鼓作气地搜索到合法位置边界，然后<mark>逐渐回退搜索距离去搜索其他的位置</mark>。BFS则是沿着距离出发点从近到远，一步步地“逐层”完成遍历，这里的“层”表示的是<mark>距离源点距离等同的点组成的集合</mark>，BFS就像<b>往水中投入一颗石子，涟漪向外逐渐扩展的过程</b>。这两种算法都是可以完整地对搜索空间完成遍历的。
+
+因为算法的特性，<mark>DFS往往采用递归法(栈)实现，而BFS则使用队列来迭代实现</mark>。同时，DFS往往也会<mark>结合回溯、剪枝等技巧对搜索空间完成更加高效的搜索</mark>。
+
+## [200.岛屿数量](https://leetcode.cn/problems/number-of-islands/)
+
+这道题给出一个二维数组，其中1表示陆地，0表示海洋，问<mark>有多少块陆地</mark>(上下左右方向上连在一起的都属于一个陆地)。
+
+这是一个<mark>非常典型的统计连通分量个数</mark>的问题，一个DFS/BFS搜索只能“打通”一个连通块。要找到所有的连通块还是要对矩阵进行遍历，找到所有没展开过搜索的源点进行分别的DFS，<mark>执行DFS的次数就是陆地的数量</mark>。完整的代码如下，每次DFS时都要对四个方向进行搜索：
+
+```cpp
+class Solution {
+    /*array indicating whether the element has been used*/
+    bool Used[300][300] = {false};
+
+    /*check if the current point inside of boundary*/
+    bool isInBoundary(vector<vector<char>>& grid, int i, int j)
+    {
+        return i >= 0 && i < grid.size() && j >= 0 && j < grid[0].size();
+    }
+
+    /*(i,j) is the start point of traverse*/
+    void DFS(vector<vector<char>>& grid, int i, int j)
+    {
+        /*if not has been arrived and current element is land*/
+        if(isInBoundary(grid, i, j) && !Used[i][j] && grid[i][j] == '1')
+        {
+            /*set the (i,j) as true*/
+            Used[i][j] = true;
+
+            /*DFS towards RIGHT, DOWN, LEFT, UP*/
+            DFS(grid, i, j + 1);
+            DFS(grid, i + 1, j);
+            DFS(grid, i, j - 1);
+            DFS(grid, i - 1, j);
+        }
+    }
+
+    /*return value is the number of islands*/
+    int DFSTraverse(vector<vector<char>>& grid, int RowNum, int ColNum)
+    {
+        int Result = 0;
+
+        for(int i = 0 ; i < RowNum ; ++i)
+            for(int j = 0 ; j < ColNum ; ++j)
+                /*if the current element has not been arrived, start from it*/
+                if(!Used[i][j] && grid[i][j] == '1')
+                {
+                    DFS(grid, i, j);
+                    ++Result;
+                }
+        return Result;
+    }
+
+public:
+    int numIslands(vector<vector<char>>& grid) {
+        /*get the size of vector*/
+        int RowNum = grid.size();
+        int ColNum = grid[0].size();
+
+        return DFSTraverse(grid, RowNum, ColNum);
+    }
+};
+```
 
 # 排序
 
@@ -592,6 +663,47 @@ public:
 
 ```
 
+## [141.环形链表](https://leetcode.cn/problems/linked-list-cycle/)
+
+这道题是一道比较基础的有关环形链表的题目，目的是找出<mark>在当前链表中是否存在环路</mark>。方法就是使用快慢指针，看两个指针会不会最终相遇，会的话说明有环路存在。反之<mark>如果其中一个指针已经为空还没有相遇</mark>，那么说明不存在环路。
+
+注意<mark>在代码中及时判断快指针是否为空</mark>，否则可能出现越界：
+```cpp
+class Solution {
+public:
+    bool hasCycle(ListNode *head) 
+    {
+        if(not head)
+            return false;
+        // 申请了一个伪节点，让快慢指针从同一个起点开始
+        ListNode *Dummy = new ListNode(1);
+        Dummy->next = head;
+        
+        ListNode *Fast = Dummy, *Slow = Dummy;
+        while(Fast)
+        {   
+            // 注意及时判断快指针是否已经到达终点
+            if(Fast->next)
+                Fast = Fast->next->next;
+            else
+                Fast = Fast->next;
+            Slow = Slow->next;
+            if(Fast == Slow)
+                break;
+        }
+
+        // 如果快指针到达了终点，说明无环
+        if(not Fast)
+            return false;
+
+        // 反之则是因为快慢指针相遇而退出循环，说明有环
+        return true;
+
+    }
+};
+```
+
+
 # 栈
 
 栈是一种LIFO的数据结构，在算法题中它经常用来解决<mark>匹配问题</mark>。
@@ -847,7 +959,7 @@ public:
 };
 
 ```
-官解的代码就使用了双指针第二种写法，效率却明显提升了不少，猜测可能和测试用例有关，<mark>但无论如何推荐第二种写法</mark>：
+官解的代码就使用了双指针第二种写法，效率却明显提升了不少，猜测可能和测试用例有关，<mark>但无论如何推荐第二种写法</mark>，代码如下：
 
 ![代码效率有了较为明显的提升](image/performance_comparison.png)
 
@@ -890,6 +1002,43 @@ public:
         return ans;
     }
 };
+
+```
+
+## [88.合并两个有序数组](https://leetcode.cn/problems/merge-sorted-array/)
+
+这道题给定了两个数组nums1和nums2，两者<mark>都按照升序进行排列</mark>。现在要求<mark>将两个数组合并</mark>，结果记录在nums1中。这道题的最优解法是双指针，但是如果按照传统的从前到后的双指针的话，会发现nums1中的元素很容易被覆盖，但是<mark>新开一个数组的话又会导致空间复杂度上升</mark>。
+
+这道题真正的解法是<b>逆向双指针</b>，也就是<mark>从后往前进行元素摆放</mark>。因为合并后的数组总长度是确定的，那么就可以从后往前摆放。
+
+```cpp
+class Solution {
+public:
+    void merge(vector<int>& nums1, int m, vector<int>& nums2, int n) {
+        int p1 = m - 1, p2 = n - 1;
+        // 合并后的总长度是m + n
+        int tail = m + n - 1;
+
+        // cur存放的是当前要摆放的下一个元素
+        int cur;
+        while (p1 >= 0 || p2 >= 0) 
+        {
+            // 首先判断是否访问越界
+            if (p1 == -1) 
+                cur = nums2[p2--];
+            else if (p2 == -1) 
+                cur = nums1[p1--];
+            else if (nums1[p1] > nums2[p2])
+                cur = nums1[p1--];
+            else
+                cur = nums2[p2--];
+            
+            // 将元素放置到应有的位置上
+            nums1[tail--] = cur;
+        }
+    }
+};
+
 
 ```
 
@@ -1104,6 +1253,119 @@ public:
     }
 };
 ```
+
+## [5.最长回文子串](https://leetcode.cn/problems/longest-palindromic-substring/)
+
+一道非常经典的动态规划问题，本题所有的解法总结如下：
+<b>
+- 按<mark>长度</mark>对字符串进行动态规划
+- 中心扩展算法
+- 马拉车(Manacher)算法
+</b>
+
+这里主要对前两种方法进行记录和分析。
+
+首先来看动态规划法，本题的动态规划解法对应的<mark>递推方程如下</mark>，设DP[i][j]的含义是s[i..j]这个范围内的<mark>子串是否为回文串</mark>：
+
+```cpp
+DP[i][j] = DP[i + 1][j - 1] if s[i] == s[j]
+DP[i][j] = 0 if s[i] != s[j]
+```
+
+也就是说，当两个字符相等时问题规模会缩小到DP[i + 1][j - 1]，即判断s[i + 1..j - 1]这个范围内的字串<mark>是否为回文串</mark>。但是这里存在的问题就是我们在将要使用DP[i][j]时<mark>不能保证DP[i + 1][j - 1]之前已经被计算出来了</mark>。要保证这点我们必须<mark>按照字符串长度由小到大</mark>进行遍历，这样当我们遍历到更长的子串时，可以确保<mark>比它短的所有子串</mark>的判断结果都已经得到了。
+
+含注释的代码如下，注意我们首先枚举了所有长度为1和2的子串是否为回文子串，这也算是<mark>递推奠基的部分</mark>。此后在对长度为3及以上的子串进行枚举：
+
+```cpp
+class Solution {
+public:
+    string longestPalindrome(string s) {
+        int n = s.size();
+        // target记录的是当前最长的回文子串的开始结束下标
+        // MaxLength记录的是当前记录到的最长长度
+        pair<int, int> Target = make_pair(0, 0);
+        int MaxLength = 1;
+
+        // DP[i][j]表示的是s[i..j]是否为回文子串
+        bool DP[n][n];
+        memset(DP, false, sizeof(DP));
+
+        // 递推奠基：对长度为1或2的子串进行枚举和判断
+        for(int i = 0 ; i < n ; ++i)
+        {
+            DP[i][i] = true;
+            if(i + 1 < n and s[i] == s[i + 1])
+            {
+                DP[i][i + 1] = true;
+                if(2 > MaxLength)
+                {
+                    MaxLength = 2;
+                    Target = make_pair(i, i + 1);
+                }
+            }
+        }
+
+        // 从长度为3的子串开始进行遍历，可以确保更短的子串已经遍历过
+        // 在这个过程中一旦发现更长的子串，就更新Target和MaxLength
+        for(int Length = 3 ; Length <= n ; ++Length)
+            for(int i = 0 ; i + Length - 1 < n ; ++i)
+            {
+                int j = i + Length - 1;
+                DP[i][j] = (DP[i + 1][j - 1] and s[i] == s[j]);
+                if(DP[i][j] and Length > MaxLength)
+                {
+                    MaxLength = Length;
+                    Target = make_pair(i, j);
+                }  
+            }
+
+        return s.substr(Target.first, Target.second - Target.first + 1);
+    }
+};
+
+```
+
+<mark>按长度进行动态规划</mark>是最长回文子串的经典解法之一，但是空间复杂度不是很好，还有更好的算法可以进一步优化空间复杂度，这种算法也很简单，就是<mark>中心扩展算法</mark>。
+
+因为回文子串的起始点可以是<mark>一个或者两个字符</mark>(分别对应于回文串长度为奇数或偶数的情况)，所以对于每一个字符而言都要从两个(长度分别为1或2)回文中心出发扩展。扩展的思路很简单，就是<mark>从中心出发向两边遍历，直到不符合回文要求为止</mark>，这部分代码的逻辑写在CenterExpansion中。
+
+随后就是统计在<mark>中心扩展时遇到的最长回文子串</mark>即可，使用pair保持下来比较方便，完整的代码如下：
+
+```cpp
+class Solution {
+    pair<int, int> CenterExpansion(const string& s, int Start, int End)
+    {
+        int n = s.size();
+        while(Start >= 0 and End < n and s[Start] == s[End])
+        {
+            Start--;
+            End++;
+        }
+        return {Start + 1, End - 1};
+    }
+public:
+    string longestPalindrome(string s) {
+        int n = s.size();
+        pair<int, int> Present = make_pair(0, 0);
+        for(int i = 0 ; i < n ; ++i)
+        {
+            auto Pair1 = CenterExpansion(s, i, i);
+            auto Pair2 = CenterExpansion(s, i, i + 1);
+            if(Pair1.second - Pair1.first + 1 > Present.second - Present.first)
+                Present = Pair1;
+            if(Pair2.second - Pair2.first + 1 > Present.second - Present.first)
+                Present = Pair2;
+                
+        }
+        return s.substr(Present.first, Present.second - Present.first + 1);
+    }
+};
+
+```
+
+
+
+
 
 # 设计类问题
 ## <a name='146.LRUhttps:leetcode.cnproblemslru-cache'></a>[146.LRU 缓存](https://leetcode.cn/problems/lru-cache/)
