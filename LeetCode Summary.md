@@ -6,6 +6,7 @@
   - [81.搜索旋转排序数组 II](#81搜索旋转排序数组-ii)
 - [DFS \& BFS](#dfs--bfs)
   - [200.岛屿数量](#200岛屿数量)
+  - [46.全排列](#46全排列)
 - [排序](#排序)
   - [215.数组中的第K个最大元素](#215数组中的第k个最大元素)
   - [912.堆排序](#912堆排序)
@@ -15,11 +16,16 @@
   - [25.K个一组翻转链表](#25k个一组翻转链表)
   - [21.合并两个有序链表](#21合并两个有序链表)
   - [141.环形链表](#141环形链表)
+  - [142.环形链表 II](#142环形链表-ii)
+  - [160.相交链表](#160相交链表)
+  - [143.重排链表](#143重排链表)
 - [栈](#栈)
-  - [20. 有效的括号](#20-有效的括号)
+  - [20.有效的括号](#20有效的括号)
 - [队列](#队列)
 - [树](#树)
   - [102.二叉树的层序遍历](#102二叉树的层序遍历)
+  - [103.二叉树的锯齿形层序遍历](#103二叉树的锯齿形层序遍历)
+  - [236.二叉树的最近公共祖先](#236二叉树的最近公共祖先)
 - [图](#图)
 - [滑动窗口 \& 双指针](#滑动窗口--双指针)
   - [3.无重复字符的最长子串](#3无重复字符的最长子串)
@@ -27,15 +33,19 @@
   - [88.合并两个有序数组](#88合并两个有序数组)
 - [动态规划](#动态规划)
   - [53.最大子数组和](#53最大子数组和)
-  - [121. 买卖股票的最佳时机](#121-买卖股票的最佳时机)
-  - [122. 买卖股票的最佳时机 II](#122-买卖股票的最佳时机-ii)
+  - [121.买卖股票的最佳时机](#121买卖股票的最佳时机)
+  - [122.买卖股票的最佳时机 II](#122买卖股票的最佳时机-ii)
   - [5.最长回文子串](#5最长回文子串)
+  - [300.最长递增子序列](#300最长递增子序列)
+  - [42.接雨水](#42接雨水)
+  - [72.编辑距离](#72编辑距离)
 - [设计类问题](#设计类问题)
   - [146.LRU 缓存](#146lru-缓存)
 - [数学类问题](#数学类问题)
 - [模拟 \& 找规律](#模拟--找规律)
+  - [54.螺旋矩阵](#54螺旋矩阵)
 - [其他问题](#其他问题)
-  - [1. 两数之和（巧用哈希表）](#1-两数之和巧用哈希表)
+  - [1.两数之和（巧用哈希表）](#1两数之和巧用哈希表)
 
 
 # LeetCode Summary
@@ -88,8 +98,8 @@ public:
             }          
             else // nums[Left] > nums[Mid]，说明有序区间是[Mid, Right)
             {
-            // 注意这里：nums[Right]是不存在于区间之中的，故使用nums[Right - 1]来比较
-            // 同样的，因为nums[Right - 1]包含在区间中，所以是<=号
+        // 注意这里：nums[Right]是不存在于区间之中的，故使用nums[Right - 1]来比较
+        // 同样的，因为nums[Right - 1]包含在区间中，所以是<=号
                 if(nums[Mid] <= target and target <= nums[Right - 1])
                     Left = Mid;
                 else
@@ -107,7 +117,7 @@ public:
 
 这道题是在上述<mark>搜索旋转数组</mark>的问题上引入了重复元素，这下使得整个问题变得复杂了很多，首先之前的二段性就荡然无存了，所以二分算法只能加速本题的求解，而在<mark>最坏状态下问题还是会退化到O(n)的状态</mark>。
 
-代码如下：
+含注释的代码如下：
 ```cpp
 class Solution {
     // 本题还是约定使用左闭右开的区间写法[)
@@ -226,12 +236,54 @@ public:
     }
 };
 ```
+## [46.全排列](https://leetcode.cn/problems/permutations/)
+这个问题给了一个<mark>不包含重复数字的数组</mark>，让我们找出它的全部排列。这个问题还是非常简单的，因为它不包含重复元素，并且数据规模非常小，长度不超过6，所以直接<b>通过DFS穷举搜索空间</b>就可以。
+```cpp
+class Solution {
+    // 开辟一个长度为6的数组来记录每个元素的使用情况
+    bool Visited[6] = {false};
+    vector<vector<int>> Ans{};
+
+    void DFS(vector<int>& nums, vector<int>& Tmp, int n)
+    {
+        // 如果当前DFS到达了终点，记录答案并返回
+        if(Tmp.size() == n)
+        {
+            Ans.push_back(Tmp);
+            return;
+        }
+        
+        // 否则遍历所有数字，找出其中没有使用的
+        // 使用回溯法探测所有解
+        for(int i = 0 ; i < n ; ++i)
+            if(not Visited[i])
+            {
+                // 向深处探测解
+                Visited[i] = true;
+                Tmp.push_back(nums[i]);
+                DFS(nums, Tmp, n);
+
+                // 回溯
+                Tmp.pop_back();
+                Visited[i] = false;
+            }
+    }
+public:
+    vector<vector<int>> permute(vector<int>& nums) {
+        // 主函数只需要调用一次DFS即可
+        int n = nums.size();
+        vector<int> Tmp;
+        DFS(nums, Tmp, n);
+        return Ans;
+    }
+};
+```
 
 # 排序
 
 <b>值得注意的是排序类问题并不是简单的排序算法的实现，而是基于基础排序算法而诞生的一系列问题，其中以快速排序算法的划分法诞生的变式问题最多。</b>
 
-##  <a name='215.Khttps:leetcode.cnproblemskth-largest-element-in-an-array'></a>[215.数组中的第K个最大元素](https://leetcode.cn/problems/kth-largest-element-in-an-array/)
+## [215.数组中的第K个最大元素](https://leetcode.cn/problems/kth-largest-element-in-an-array/)
 
 这是典型的一道Top K求解问题，一般来说这类问题使用<mark>堆(优先队列)</mark>来解决即可。但是这道题要求实现O(n)的算法，所以堆排序在时间复杂度上不符合要求。
 
@@ -288,7 +340,7 @@ public:
 };
 ```
 
-##  <a name='912.https:leetcode.cnproblemskth-largest-element-in-an-array'></a>[912.堆排序](https://leetcode.cn/problems/kth-largest-element-in-an-array/)
+## [912.堆排序](https://leetcode.cn/problems/kth-largest-element-in-an-array/)
 
 堆排序是解决Top K排序的重要方法，但是堆排序<mark>在面试时也往往需要直接手撕</mark>。
 
@@ -532,7 +584,7 @@ public:
         if(not head or not head->next)
             return head;
         ListNode* Tmp = reverseList(head->next);
-        head->next->next = head;  // 将新的链表节点接入链表
+        head->next->next = head;  // 将新的链表节点接入链表，是不是很晦涩
         head->next = nullptr;     // 最后一个节点的next指针是nullptr
         return Tmp;  // 返回值应该是反转后链表的头节点
     }
@@ -703,12 +755,189 @@ public:
 };
 ```
 
+## [142.环形链表 II](https://leetcode.cn/problems/linked-list-cycle-ii/)
+
+这是141.环形链表的进阶问题，它要求<mark>首先判断链表是否有环，如果有环的话还要找到开始成环的位置</mark>。
+
+判断是否有环的算法思路这里不再赘述了，和141题是一致的，使用的就是<mark>Floyd判圈算法</mark>，即快慢指针相遇的方法。当发现链表中存在环的时候，同时<mark>从头节点和相交节点启动指针，直到它们相遇为止</mark>，这个<b>相遇点就是链表的成环位置</b>。详细的代码如下：
+
+```cpp
+class Solution {
+public:
+    ListNode *detectCycle(ListNode *head) {
+        // 如果链表为空，直接返回
+        if(not head)
+            return NULL;
+
+        // 否则开始使用快慢指针算法判断链表是否有环
+        ListNode *Fast = head, *Slow = head;
+        while(Fast)
+        {
+            if(Fast->next)
+                Fast = Fast->next->next;
+            else
+                Fast = Fast->next;
+            Slow = Slow->next;
+
+            // 如果快慢指针相遇且不为空，那么说明有环存在
+            // 不为空的条件容易忽略，比如测试用例：head = [1], pos = -1
+            if(Fast and Fast == Slow)
+            {
+                // 从头部开始启动一个新的指针
+                // 和相交点指针同时向后移动
+                ListNode *Start = head;
+                while(Slow != Start)
+                {
+                    Slow = Slow->next;
+                    Start = Start->next;
+                }
+                // 相交点即为链表的成环位置
+                // 证明可见官方题解
+                return Start;
+            }
+        }
+        // 如果Fast变为空指针，则说明无环，返回NULL
+        return NULL;
+    }
+};
+```
+
+## [160.相交链表](https://leetcode.cn/problems/intersection-of-two-linked-lists/)
+
+本题和上面的<mark>141.环形链表</mark>有异曲同工之妙，凡是涉及到有环链表的问题，其解决思路往往就是使用双指针法，最终判断它们是否会相遇。本题也是如此，它启用了两枚指针<mark>交错(也就是说<mark>两个指针都要分别走完两个链表各一次</mark>)着对两个链表进行遍历</mark>，同时保证它们的运动速度一样。
+
+
+这样一来，可以想见如果两个链表有交叉点，那么这两枚指针<mark>一定会相遇在一个非空节点上</mark>。因为它们走过的路程一样，速度也一样。反之，如果没有相交的节点，那么此时<mark>两个节点就会在某一时刻同时变成空节点</mark>。
+
+一种更加简单的方法是使用Hash表将所有遍历过的节点指针都记录下来，但是<mark>这样的解法会牺牲空间复杂度</mark>，因此不是最优的解法。
+
+这道题更加值得注意的是如何<b>优雅地</b>写出上面相交链表的逻辑，官解做出了很好的示范：
+```cpp
+class Solution {
+public:
+    ListNode *getIntersectionNode(ListNode *headA, ListNode *headB) 
+    {
+        if (headA == nullptr or headB == nullptr)
+            return nullptr;
+        ListNode *pA = headA, *pB = headB;
+
+        // 注意退出循环的条件是两个指针相遇
+        // 如果两个链表有相交，那么会在一个非空节点(交点)处相遇
+        // 反之如果不相交，那么一定会在同为空指针时退出循环
+        while (pA != pB) {
+            // 注意要在指针本身为空时才选择切换
+            // 否则可能造成死循环
+            pA = pA == nullptr ? headB : pA->next;
+            pB = pB == nullptr ? headA : pB->next;
+        }
+        // 返回相交时的指针即可
+        return pA;
+    }
+};
+```
+
+## [143.重排链表](https://leetcode.cn/problems/reorder-list/)
+
+这道题可能是我所接触过的链表问题中最精巧的一道，因为一道题考察了三种常见算法：<mark>快慢指针、链表反转、链表合并</mark>并且写法颇为精巧。首先题目要求对一个链表做如下变化：
+
+![](image/ReorderList.png)
+
+这种变换可以使用暴力法来模拟，也可以通过上述的三个小算法来完成：
+<b>
+- 首先找到链表中点(偶数个节点时找到靠前的那个节点)
+- 反转后一半链表
+- 将前一半链表和反转后的后一半链表进行合并(merge)
+</b>
+
+所以首先实现上述的三个函数：
+
+<mark>1.快慢指针找中点</mark>
+```cpp
+
+ListNode* middleNode(ListNode* head) 
+{
+    ListNode* slow = head;
+    ListNode* fast = head;
+
+    // 注意这里跳出循环的条件，是根据快指针是否还能往前走决定的
+    while (fast->next != nullptr && fast->next->next != nullptr) 
+    {
+        slow = slow->next;
+        fast = fast->next->next;
+    }
+    return slow;
+}
+```
+
+<mark>2.链表的反转</mark>
+```cpp
+ListNode* reverseList(ListNode* head)
+{
+    if(not head)
+        return nullptr;
+
+    // 为了保证处理节点逻辑的一致性，这里申请了一个头节点
+    ListNode *Dummy = new ListNode(0 ,head);
+    ListNode *Left = Dummy, *Right = Dummy->next;
+    while(Right)
+    {
+        ListNode *Next = Right->next;
+        Right->next = Left;
+        Left = Right;
+        Right = Next;
+    }
+
+    // 保证将反转之后的最后一个节点的指针置为nullptr
+    Dummy->next->next = nullptr;
+    return Left;
+}   
+
+```
+
+<mark>3.合并链表</mark>
+
+因为这里的链表是从中间分开的，<mark>所以两段链表的长度差不超过1</mark>(且一定是前半段链表长度大于等于后半段链表长度)。因此这里合并链表的代码版本可以更加简化一点，<b>一次循环中合并两个节点</b>：
+```cpp
+ // 较长的链表放置在L1
+ListNode* mergeList(ListNode* L1, ListNode* L2)
+{
+    while(L1 and L2)
+    {
+        ListNode *L1Next = L1->next;
+        L1->next = L2;
+        L1 = L1Next;
+
+        ListNode *L2Next = L2->next;
+        L2->next = L1;
+        L2 = L2Next;
+    }
+    return L1;
+}
+```
+在完成了上述代码的编写之后，只需要<mark>在主函数中调用它们即可</mark>：
+
+```cpp
+void reorderList(ListNode* head) 
+{
+    ListNode *Mid = getMid(head);
+
+    // 注意在这里将前半段链表的最后一个节点置空
+    // 因为我们要将它当作一个完全独立的链表与后半段链表合并
+    ListNode *Latter = Mid->next;
+    Mid->next = nullptr;
+
+    // 反转链表并与后半段链表合并
+    ListNode *Reverse = reverseList(Latter);
+    ListNode *Ans = mergeList(head, Reverse);
+    return;
+}
+```
 
 # 栈
 
 栈是一种LIFO的数据结构，在算法题中它经常用来解决<mark>匹配问题</mark>。
 
-## [20. 有效的括号](https://leetcode.cn/problems/valid-parentheses/)
+## [20.有效的括号](https://leetcode.cn/problems/valid-parentheses/)
 
 这是使用栈解决的问题中最常见的一类，即<mark>简单匹配问题</mark>。
 
@@ -787,6 +1016,145 @@ public:
 };
 ```
 
+## [103.二叉树的锯齿形层序遍历](https://leetcode.cn/problems/add-strings/)
+
+103题是102题的进阶问题，主要是在<mark>层序遍历的基础上加上锯齿形</mark>。思路也很简单，就是在队列中加上一个标记符来表示当前进行遍历的方向，当<mark>Flag == false是从左到右进行遍历，反之从右到左进行遍历</mark>。另外一个值得注意的点是推入子节点的顺序，当<mark>从右向左进行遍历的时候要先推入右节点</mark>，否则顺序会错误。
+
+```cpp
+class Solution {
+public:
+    vector<vector<int>> zigzagLevelOrder(TreeNode* root) {
+        if(not root)
+            return {};
+        
+        vector<vector<int>> Ans;
+        deque<TreeNode*> Q;
+        /*Flag == False表示从左到右，反之从右到左*/
+        bool Flag = false;
+        Q.push_back(root);
+        while(not Q.empty())
+        {
+            // 存放每一层结果的数组
+            vector<int> Tmp;
+            int Length = Q.size();
+            for(int i = 0 ; i < Length ; ++i)
+            {   
+            // Flag == false从左到右进行遍历，注意先进左子节点
+                if(not Flag)
+                {
+                    auto Front = Q.front();
+                    Q.pop_front();
+                    Tmp.push_back(Front->val);
+                    if(Front->left)
+                        Q.push_back(Front->left);
+                    if(Front->right)
+                        Q.push_back(Front->right);
+                }
+            // Flag = true从右到左进行遍历，注意先进右子节点才能维持顺序
+                else
+                {
+                    auto Back = Q.back();
+                    Q.pop_back();
+                    Tmp.push_back(Back->val);
+                    if(Back->right)
+                        Q.push_front(Back->right);
+                    if(Back->left)
+                        Q.push_front(Back->left);
+                }
+            }
+            // 当前层次遍历完之后，标志位取反
+            Flag = not Flag;
+            Ans.push_back(Tmp);
+        }
+        return Ans;
+    }
+};
+```
+## [236.二叉树的最近公共祖先](https://leetcode.cn/problems/lowest-common-ancestor-of-a-binary-tree/)
+
+这道题让<mark>求解二叉树中两个节点的最近公共祖先</mark>，可以有两种做法：
+
+1.记录二叉树中每一个节点的父节点，然后对于目标的两个节点<mark>逐渐向上寻找它们对应的父节点</mark>，直至找到第一个共同祖先，这种想法还是比较简单朴素的，也是我求解这道题时的第一个做法，这里我直接引用官解的代码来简述这种思路：
+```cpp
+class Solution {
+public:
+    /*因为题目中保证每一个节点的值都不同，所以将值作为键即可*/
+    unordered_map<int, TreeNode*> fa;
+    unordered_map<int, bool> vis;
+    /*这里的DFS用来统计每一个点的父节点*/
+    void dfs(TreeNode* root){
+        if (root->left != nullptr) {
+            fa[root->left->val] = root;
+            dfs(root->left);
+        }
+        if (root->right != nullptr) {
+            fa[root->right->val] = root;
+            dfs(root->right);
+        }
+    }
+    /*
+        使用vis数组记录某个节点是否被访问，当一个节点被访问第二次时
+        这说明这就是两个节点的最近公共祖先
+    */
+    TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
+        fa[root->val] = nullptr;
+        dfs(root);
+        while (p != nullptr) {
+            vis[p->val] = true;
+            p = fa[p->val];
+        }
+        while (q != nullptr) {
+            if (vis[q->val]) return q;
+            q = fa[q->val];
+        }
+        return nullptr;
+    }
+};
+```
+
+2.使用<mark>DFS法</mark>求解
+
+相对来说，这种方法要<mark>更加的精巧和高效，但是思维难度也更高</mark>。这里定义了一个DFS函数，它返回一个bool值，含义是：<b>root为根的子树是否包含p节点或q节点</b>。那么，对于一颗以root为根节点的树而言，<mark>它是指针p和q的最近公共祖先当且仅当如下条件之一成立</mark>：
+
+
+- p,q一左一右位于root的左右子树中
+- p就是root本身，而q在root的左右子树之一中
+- q就是root本身，而p在root的左右子树之一中
+
+综上所述，代码逻辑和注释如下，这里直接引用的是官解代码：
+
+```cpp
+class Solution {
+public:
+    TreeNode* ans{nullptr};
+    /*
+        dfs函数的意义是：
+        以root为根节点的子树中是否含有p或q节点之一，
+        是则返回true，否则返回false
+    */
+    bool dfs(TreeNode* root, TreeNode* p, TreeNode* q) 
+    {
+        /*剪枝：当ans不为nullptr时直接返回，减少了相当多的递归次数*/
+        if (root == nullptr or ans != nullptr) return false;
+        bool lson = dfs(root->left, p, q);
+        bool rson = dfs(root->right, p, q);
+        // 判断root是否为p和q的最近公共祖先，是则将root保存到ans中
+        if ((lson && rson) || ((root->val == p->val || root->val == q->val) && (lson || rson))) {
+            ans = root;
+        } 
+
+        // 返回值含义：root是否包含p或q其中之一
+        return lson || rson || (root->val == p->val || root->val == q->val);
+    }
+    TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) 
+    {
+        dfs(root, p, q);
+        return ans;
+    }
+};
+
+
+```
 
 # 图
 
@@ -880,7 +1248,7 @@ else
 
 这样就将这个问题的复杂度整体降至了O(nlogn)的级别，即<mark>排序本身的复杂度</mark>，而上面的这段代码复杂度为O(n)。
 
-事实上，<mark>双指针算法可以写成下面这样</mark>，如下所示：
+事实上，<mark>双指针算法还可以写成下面这样</mark>，如下所示：
 ```cpp
 int Second = n - 1;
 for(int First = 0 ; First < Second ; ++First)
@@ -1009,7 +1377,7 @@ public:
 
 这道题给定了两个数组nums1和nums2，两者<mark>都按照升序进行排列</mark>。现在要求<mark>将两个数组合并</mark>，结果记录在nums1中。这道题的最优解法是双指针，但是如果按照传统的从前到后的双指针的话，会发现nums1中的元素很容易被覆盖，但是<mark>新开一个数组的话又会导致空间复杂度上升</mark>。
 
-这道题真正的解法是<b>逆向双指针</b>，也就是<mark>从后往前进行元素摆放</mark>。因为合并后的数组总长度是确定的，那么就可以从后往前摆放。
+这道题真正的解法是<b>逆向双指针</b>，也就是<mark>从后往前进行元素摆放</mark>。因为合并后的数组<b>总长度是确定的</b>，那么就可以从后往前摆放。
 
 ```cpp
 class Solution {
@@ -1061,7 +1429,7 @@ public:
 
 ## [53.最大子数组和](https://leetcode.cn/problems/maximum-subarray/)
 
-这道题的题目是<mark>求出一个数组中连续的子数组和</mark>，首先看一眼这道题的数据规模是10^5，那么一定是使用O(n)级别的算法来解决。
+这道题的题目是<mark>求出一个数组中最大的子数组和</mark>，首先看一眼这道题的数据规模是10^5，那么一定是使用O(n)级别的算法来解决。注意子数组和子序列的不同，<b>子数组必须是连续的，子序列不一定要是连续的</b>。
 
 我的最原始解法使用的是<mark>动态规划</mark>。动态规划法的递推关系非常简单，<mark>设DP[i]是以nums[i]为结尾的最大子数组和</mark>，那么：
 
@@ -1139,7 +1507,7 @@ public:
 
 ![](image/From_DC_to_SegTree.png)
 
-## [121. 买卖股票的最佳时机](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock/)
+## [121.买卖股票的最佳时机](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock/)
 
 这是<mark>买卖股票的最佳时机</mark>系列问题的第一道，它给出了一个数组，让我们决定在<mark>何时买入何时卖出可以获得最大收益</mark>，这个系列的问题有通用解法，即<mark>动态规划</mark>，所以将此问题总结在动态规划这个专题下面。
 
@@ -1204,7 +1572,7 @@ public:
 ```
 注意到上述代码中，DP[i]的值只和DP[i - 1]有关，所以<mark>可以使用滚动数组技巧来优化空间复杂度</mark>。掌握这类问题的本质建议还是<mark>使用动态规划法来解决</mark>，在面试手撕时建议使用一次遍历来解。
 
-## [122. 买卖股票的最佳时机 II](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-ii/)
+## [122.买卖股票的最佳时机 II](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-ii/)
 
 这是买卖股票系列问题之二，这次买卖次数改为了<mark>任意次买入和任意次卖出</mark>。这道题的最优解法是贪心法，通用解法则是动态规划，因为动态规划是这一类问题的通解。所以，总结在此专题下。
 
@@ -1363,12 +1731,253 @@ public:
 
 ```
 
+## [300.最长递增子序列](https://leetcode.cn/problems/longest-increasing-subsequence/)
 
 
+这道题是让求解一个数组中<mark>最长的递增子序列</mark>，子序列不一定要是连续的，只需要前面的元素之一比它小就可以组成一个递增子序列。
+
+这道题的解法可以有两种，<b>第一就是动态规划法，第二则是贪心 + 二分法</b>。
+输入规模是2500以内，所以<mark>O(n^2)的算法也是可以接受的，这就是动态规划法</mark>。
+
+注意本题的动态规划解法中DP的含义：
+设DP[i]表示<mark>以nums[i]为结尾的最长递增子序列</mark>，则递推关系如下：
+
+<b>DP[i] = max(DP[j] + 1, DP[i]), j < i 且 nums[j] < nums[i]</b>
+
+完整的动态规划的解法代码如下：
+```cpp
+class Solution {
+public:
+    int lengthOfLIS(vector<int>& nums) {
+        int n = nums.size();
+        int DP[n];
+        int Ans = -1;
+        fill(DP, DP + n, 1);
+		
+        // 通过两层循环解出完整的DP数组，时间复杂度是O(n^2)
+        for(int i = 0 ; i < n ; ++i)
+            // 注意j < i的限制
+            for(int j = 0 ; j < i ; ++j)	
+                if(nums[j] < nums[i])
+                    DP[i] = max(DP[j] + 1, DP[i]);
+        
+        // 通过一次遍历找出DP数组中的最大值，此步骤也可以合并到上述循环中 
+        for(int i = 0 ; i < n ; ++i)
+            Ans = max(Ans, DP[i]);
+        return Ans;
+    }
+};
+```
+
+
+然后是本题的贪心 + 二分解法：
+
+这种做法非常巧妙，就像最<mark>长回文子串问题中的中心扩展法</mark>一样，属于<mark>动态规划法以外的巧妙解法</mark>。
+
+本解法的贪心之处在于<mark>要使得上升子序列的长度最长，必须要使得数组结尾的数字尽可能小</mark>，这样才可能有更大的数字出现在其后。出于上述的贪心思路，这里设置一个数组d[i]专门来<mark>表示<b>长度为i + 1的</b>最长上升子序列的末尾元素的最小值</mark>，这里d[i]一定会是单调递增的序列（证明可见官方题解）。
+
+在算法执行的时候，当遇到一个比数组d最大元素更大的新元素nums[i]，<mark>直接扩展d的长度</mark>并插入新元素。如果遇到的元素小于d的最大元素，则使用<mark>二分查找</mark>找到<b>大于nums[i]的最小值</b>，并使用nums[i]覆盖之，表示<b>更新了长度为i+1的最长子串的结尾元素</b>。
+
+这样相当于找到了递增序列的最小结尾数字，以备后续覆盖，<mark>官方题解代码</mark>如下，因为使用了<mark>一层循环 + 二分查找，总的时间复杂度是O(nlogn)</mark>：
+
+```cpp
+class Solution {
+public:
+    int lengthOfLIS(vector<int>& nums) {
+        int len = 0, n = (int)nums.size();
+        if (n == 0) {
+            return 0;
+        }
+        vector<int> d(n, 0);
+
+        // d[i]表示长度为i+1的递增序列中末尾元素的最小值
+        d[len] = nums[0];
+        for (int i = 1; i < n; ++i) {
+            if (nums[i] > d[len]) {
+                d[++len] = nums[i];
+            } else {
+                /* 
+                使用二分查找找到大于nums[i]的最小值
+                这里仍然按照我的习惯遵循左闭右开的法则
+                也可以使用lower_bound函数直接查找，不手写二分
+                */
+                int l = 0, r = len; 
+                while (l < r) {
+                    int mid = (l + r) >> 1;
+                    if (d[mid] < nums[i])
+                        l = mid + 1;
+                    else // d[mid] >= nums[i]
+                        r = mid;
+                }
+                d[l] = nums[i];
+            }
+        }
+        return len + 1;
+    }
+};
+```
+
+使用lower_bound<mark>代替手写二分法会更加简洁</mark>，代码如下：
+```cpp
+class Solution {
+/*copyright:灵茶山艾府*/
+public:
+    int lengthOfLIS(vector<int> &nums) {
+        vector<int> g;
+        for (int x : nums) {
+            auto it = lower_bound(g.begin(), g.end(), x);
+            if (it == g.end()) g.push_back(x); 
+            else *it = x;
+        }
+        return g.size();
+    }
+};
+```
+
+本题在面试时有时还会遇到输出路径的加问，可以参考以下解答：
+[输出字典序最小的路径](https://leetcode.cn/problems/longest-increasing-subsequence/solution/xiao-bai-lang-jing-dian-dong-tai-gui-hua-px0v/)
+
+## [42.接雨水](https://leetcode.cn/problems/trapping-rain-water/)
+一道非常经典的问题，求解的是在一系列高度各异的木板中，可以存储的最大水量。
+
+这里只总结两种解法：<b>动态规划和双指针</b>。
+
+这道题最难的在于发现规律，也就是一个木板上<mark>能够盛放多少水</mark>如何计算。这里直接给出这个公式，可以自己验证一下：
+
+<mark><b>一块木板上所能积蓄的水量 = min(这个木板以左的最高木板(含自身)，这个木板以右的最高木板(含自身)) - 木板本身的高度</b></mark>
+
+知道了这个结论之后，剩下的问题就转化成如何求出每一个木板左右两侧的最高木板了，这里<mark>可以使用动态规划和双指针算法</mark>。
+
+首先来看动态规划解法，设两个数组LeftMaxHeight[i]和RightMaxHeight[i]分别表示height[i]木板左右(含自身)的最大木板高度。只要分别求出这两个数组，那么剩下的来的<mark>就是使用上面的结论一次遍历求出答案</mark>。
+
+```cpp
+class Solution {
+public:
+    int trap(vector<int>& height) 
+    {
+        int Length = height.size();
+
+        // 声明两个数组分别记录height[i]左右(含自身)的最高木板
+        int* LeftMaxHeight = new int [Length];
+        int* RightMaxHeight = new int [Length];
+
+        LeftMaxHeight[0] = height[0];
+        RightMaxHeight[Length - 1] = height[Length - 1];
+
+        // 使用动态规划的方法解出上述两个数组
+        for(int i = 1 ; i < Length ; ++i)
+            LeftMaxHeight[i] = max(LeftMaxHeight[i - 1], height[i]);
+    
+        for(int j = Length - 2 ; j >= 0 ; --j)
+            RightMaxHeight[j] = max(RightMaxHeight[j + 1], height[j]);
+
+        // 使用上述的规律解出答案即可
+        // 所以本题的难点其实在于找出每块木板积水的规律
+        int Ans = 0; 
+        for(int i = 1 ; i < Length - 1 ; ++i)
+            Ans += (min(LeftMaxHeight[i], RightMaxHeight[i]) - height[i]);
+
+        return Ans;
+    }
+};
+```
+以上就是动态规划的解法，它的时间复杂度和空间复杂度都是O(n)，本题还有双指针的解法，可以将空间复杂度降至O(1)。在双指针法中，我们只需要保存两枚指针，分别记录着<mark>遍历到某个位置时左边和右边的最高木板高度</mark>，在前进的过程中会<b>一一计算出每块木板上可以存放的水量</b>。
+
+就可以通过一次遍历解出答案，代码如下：
+```cpp
+class Solution {
+public:
+    int trap(vector<int>& height) {
+        int Length = height.size();
+
+        int Head = 0, Tail = height.size() - 1;
+        int Ans = 0;
+
+        // LeftMax和RightMax分别记录着
+        // 头尾指针分别遍历到Head和Tail时的最高木板高度
+        int LeftMax = 0, RightMax = 0;
+
+        /*循环终止的条件是两个指针相遇*/
+        while(Head != Tail)			
+        {
+            LeftMax = max(height[Head], LeftMax);
+            RightMax = max(height[Tail], RightMax);
+
+            // 如果LeftMax < RightMax
+            // 这时候其实就已经可以计算出height[Left]木板上的水量了
+            // 因为RightMax在后面的遍历过程中只会增大不会减小
+            // 反过来，LeftMax >= RightMax也是同样的道理
+            // 这也是双指针法更加高效的原因
+            if(LeftMax < RightMax)
+            {
+                Ans += (LeftMax - height[Head]);
+                ++Head;
+            }
+            else
+            {
+                Ans += (RightMax - height[Tail]);
+                --Tail;
+            }
+        }
+        return Ans;
+    }
+};
+```
+## [72.编辑距离](https://leetcode.cn/problems/edit-distance/)
+一道非常初看比较困难的问题，第一次我没有做出来，要求解的问题是<b>一个字符串S1最少经过多少步可以变为另一个字符串S2</b>，每一步可以采取的修改方式有<mark>添加、删除、替换一个字符</mark>。
+
+这篇题解比较好地诠释了本题的思路，建议仔细阅读：[编辑距离的题解](https://leetcode.cn/problems/edit-distance/solution/zi-di-xiang-shang-he-zi-ding-xiang-xia-by-powcai-3/)。
+
+事实上，我们开辟一个二维数组DP[i][j]代表<mark>word1前i个字符转换成word2的前j个字符需要的最少步数</mark>。相对应的递推方程是(从题解中引用的解释)：
+
+<b>
+1.当 word1[i] == word2[j]，dp[i][j] = dp[i-1][j-1]
+</b>
+
+<b>
+2.当 word1[i] != word2[j]，dp[i][j] = min(dp[i-1][j-1], dp[i-1][j], dp[i][j-1]) + 1
+</b>
+
+其中，dp[i-1][j-1] 表示替换操作，dp[i-1][j] 表示删除操作，dp[i][j-1] 表示插入操作。结合下图，理解递推关系的本质：
+
+![](image/EditDst.png)
+
+在进行递推之前，还需要进行初始化，这就是<mark>上图中第一行与第一列的内容</mark>。可见，从一个空串到任意字符，最少的步数就是一次增加一个字符直到两个字符串相等。完成初始化之后就<mark>可以按照上面的递推关系来求解DP数组</mark>，完整的代码如下：
+
+```cpp
+class Solution {
+public:
+    int minDistance(string word1, string word2) 
+    {
+        // 初始化
+        vector<vector<int>> dp(word1.size() + 1, vector<int>(word2.size() + 1, 0));
+
+        // 递推奠基，初始化二维表格的第一行第一列
+        for (int i = 0; i < dp.size(); i++) {
+            dp[i][0] = i;
+        }
+        for (int j = 0; j < dp[0].size(); j++) {
+            dp[0][j] = j;
+        }
+
+        for (int i = 1; i < dp.size(); i++) {
+            for (int j = 1; j < dp[i].size(); j++) {
+                // 按照递推方程计算整个DP数组
+                if (word1[i - 1] == word2[j - 1]) 
+                    dp[i][j] = min(dp[i][j], dp[i - 1][j - 1]);
+                else
+        dp[i][j] = min(dp[i - 1][j - 1], min(dp[i - 1][j], dp[i][j - 1])) + 1;
+            }
+        }
+        // 返回表格最右下角的元素
+        return dp.back().back();
+    }
+};
+```
 
 
 # 设计类问题
-## <a name='146.LRUhttps:leetcode.cnproblemslru-cache'></a>[146.LRU 缓存](https://leetcode.cn/problems/lru-cache/)
+## [146.LRU 缓存](https://leetcode.cn/problems/lru-cache/)
 
 本题是设计类问题的代表，题目中让实现一个含LRU功能的cache，且<mark>插入和删除元素的复杂度都是O(1)</mark>。这道设计题的核心思想在于<mark>链表和哈希表相互索引</mark>。
 
@@ -1506,9 +2115,46 @@ public:
 
 # 模拟 & 找规律
 
+## [54.螺旋矩阵](https://leetcode.cn/problems/spiral-matrix/)
+这道题给出了一个矩阵，要求我们<mark>顺时针地对矩阵进行遍历</mark>，如下所示：
+
+![螺旋矩阵](image/spatial_matrix.png)
+
+如果是单纯地对这个遍历过程进行拟合，是一个相对来说比较麻烦的事情，这里应该<b>使用修改边界法</b>来解决螺旋矩阵的问题。所谓修改边界法就是在<mark>每遍历完一行或者一列时，就将对应的边界进行修改</mark>，防止下次进入到已经遍历过的区域，下面直接给出源代码：
+```cpp
+class Solution {
+public:
+    vector<int> spiralOrder(vector<vector<int>>& matrix) {
+        /*调整边界法来遍历*/
+    int Left = 0, Right = matrix[0].size() - 1, Up = 0, Down = matrix.size() - 1;
+        vector<int> Ans;
+        while(true)
+        {
+            for(int i = Left ; i <= Right ; ++i)
+                Ans.push_back(matrix[Up][i]);
+            // 修改边界，下面同理
+            // 同时注意判断是否已经超出遍历边界
+            if(++Up > Down)    break;               
+            for(int i = Up ; i <= Down ; ++i)
+                Ans.push_back(matrix[i][Right]);
+            if(--Right < Left) break;
+            for(int i = Right ; i >= Left ; --i)
+                Ans.push_back(matrix[Down][i]);
+            if(--Down < Up)    break;
+            for(int i = Down ; i >= Up ; --i)
+                Ans.push_back(matrix[i][Left]);
+            if(++Left > Right) break;
+        }
+        return Ans;
+    }
+};
+```
+
+
+
 # 其他问题
 
-## [1. 两数之和](https://leetcode.cn/problems/two-sum/)（巧用哈希表）
+## [1.两数之和](https://leetcode.cn/problems/two-sum/)（巧用哈希表）
 
 这道题让找出一个数组中相加之和等于target值的一对元素，并<mark>返回它们的下标</mark>。很简单的一道题，这里<mark>不再讨论它的O(n^2)的暴力解法，因为没有什么价值</mark>。
 
