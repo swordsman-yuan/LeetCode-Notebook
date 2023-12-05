@@ -1,6 +1,5 @@
-# LeetCode-Notebook
-Here is my own version of LeetCode solution, now I shared it on Github, hope it is <b>useful</b> for people.
-I will update the notebook <b>whenever I am free</b>...
+# LeetCode-Notebook-CN
+我的Leetcode刷题笔记，有完整的思路阐述和算法的分类总结，全文使用中文写作。
 
-The PDF version is rendered by VSCode, <b>ANYONE</b> can download and distribute the notebook if you like.
+为了让我自己熟悉各种编程语言的常见算法和数据结构的写法，这本笔记中可能会有不止一种编程语言的题解(主要还是会以C++/Python3为主)，如果你发现这本笔记对你有帮助，可以随时下载和传播。
 
